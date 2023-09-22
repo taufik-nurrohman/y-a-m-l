@@ -49,7 +49,7 @@ Options
  * Convert YAML string to PHP data.
  *
  * @param null|string $value Your YAML string.
- * @param bool $array If this opton is set to `true`, PHP object will becomes associative array.
+ * @param bool $array If this option is set to `true`, PHP object will becomes associative array.
  * @return mixed
  */
 from(?string $value, bool $array = false): mixed;
