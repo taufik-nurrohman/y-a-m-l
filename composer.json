@@ -1,1 +1,46 @@
-{}
+{
+  "archive": {
+    "exclude": [
+      "/.git",
+      "/.gitattributes",
+      "/.gitignore",
+      "/test"
+    ]
+  },
+  "authors": [
+    {
+      "homepage": "https://github.com/taufik-nurrohman",
+      "name": "Taufik Nurrohman",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "files": [
+      "from.php",
+      "to.php"
+    ]
+  },
+  "description": "Obviously, a YAML parser.",
+  "funding": [
+    {
+      "type": "other",
+      "url": "https://paypal.me/tatautaufik"
+    }
+  ],
+  "homepage": "https://github.com/taufik-nurrohman/y-a-m-l",
+  "keywords": [
+    "converter",
+    "parser",
+    "yaml"
+  ],
+  "license": "MIT",
+  "name": "taufik-nurrohman/y-a-m-l",
+  "require": {
+    "php": ">=7.1"
+  },
+  "support": {
+    "docs": "https://github.com/taufik-nurrohman/y-a-m-l#readme",
+    "issues": "https://github.com/taufik-nurrohman/y-a-m-l/issues"
+  },
+  "type": "library"
+}
