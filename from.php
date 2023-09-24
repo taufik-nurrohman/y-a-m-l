@@ -10,10 +10,47 @@ namespace x\y_a_m_l {
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
-        $str = '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'';
-        if (false !== \strpos('\'"', $value[0]) && \preg_match('/(' . $str . ')\s*#.*$/', $value, $m)) {
-            return from($m[1]);
+        // Remove comment(s)
+        if ("" === ($value = from\c($value))) {
+            return null;
         }
+        if (\array_key_exists($value, $var = [
+            "''" => "",
+            '""' => "",
+            '+.INF' => \INF,
+            '+.Inf' => \INF,
+            '+.NAN' => \NAN,
+            '+.Nan' => \NAN,
+            '+.inf' => \INF,
+            '+.nan' => \NAN,
+            '-.INF' => -\INF,
+            '-.Inf' => -\INF,
+            '-.NAN' => -\NAN,
+            '-.Nan' => -\NAN,
+            '-.inf' => -\INF,
+            '-.nan' => -\NAN,
+            '.INF' => \INF,
+            '.Inf' => \INF,
+            '.NAN' => \NAN,
+            '.Nan' => \NAN,
+            '.inf' => \INF,
+            '.nan' => \NAN,
+            'FALSE' => false,
+            'False' => false,
+            'NULL' => null,
+            'Null' => null,
+            'TRUE' => true,
+            'True' => true,
+            '[]' => [],
+            'false' => false,
+            'null' => null,
+            'true' => true,
+            '{}' => $array ? [] : (object) [],
+            '~' => null
+        ])) {
+            return $var[$value];
+        }
+        $str = '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'';
         if ("'" === $value[0] && "'" === \substr($value, -1)) {
             return from\f(\strtr(\substr($value, 1, -1), [
                 "''" => "'"
@@ -34,7 +71,7 @@ namespace x\y_a_m_l {
             [$rule, $content] = \explode("\n", $raw, 2);
             // Remove comment(s)
             $content = \preg_replace('/^#.*$/m', "", $content);
-            $rule = \trim(\strstr($rule, '#', true) ?: $rule);
+            $rule = from\c($rule);
             // Get indent size to remove
             $dent = \strspn(\trim($content, "\n"), ' ');
             // Remove indent(s)
@@ -75,12 +112,13 @@ namespace x\y_a_m_l {
             }
             return $content;
         }
-        // Remove comment(s)
         if ('[' === $value[0] && ']' === \substr($value, -1) || '{' === $value[0] && '}' === \substr($value, -1)) {
             $out = "";
             // Validate to JSON
-            $value = \preg_replace('/#[^\n]+(?=\n|$)/', "", $value); // Remove comment(s)
-            foreach (\preg_split('/\s*(' . $str . '|[\[\]\{\}:,])\s*/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+            foreach (\preg_split('/\s*(' . $str . '|#[^\n]+|[\[\]\{\}:,])\s*/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+                if ('#' === $v[0]) {
+                    continue;
+                }
                 if ('~' === $v) {
                     $out .= 'null';
                     continue;
@@ -91,6 +129,10 @@ namespace x\y_a_m_l {
                 }
                 if (\is_numeric($v)) {
                     $out .= false !== \strpos(',:[', \substr($out, -1)) ? $v : '"' . $v . '"';
+                    continue;
+                }
+                if (false !== \strpos(',:[]{}', $v)) {
+                    $out .= $v;
                     continue;
                 }
                 $out .= false !== \strpos(',:[]{}', $v) ? $v : \json_encode(from($v, $array, $lot), false, 1);
@@ -109,44 +151,9 @@ namespace x\y_a_m_l {
                 ':}' => ':null}'
             ])) ?? $value;
         }
-        $value = \trim(\strstr($value, '#', true) ?: $value);
-        if ('.INF' === $value || '.Inf' === $value || '.inf' === $value || '+.INF' === $value || '+.Inf' === $value || '+.inf' === $value) {
-            return \INF;
-        }
-        if ('-.INF' === $value || '-.Inf' === $value || '-.inf' === $value) {
-            return -\INF;
-        }
-        if ('.NAN' === $value || '.Nan' === $value || '.nan' === $value || '+.NAN' === $value || '+.Nan' === $value || '+.nan' === $value) {
-            return \NAN;
-        }
-        if ('-.NAN' === $value || '-.Nan' === $value || '-.nan' === $value) {
-            return -\NAN;
-        }
-        if ('""' === $value || "''" === $value) {
-            return "";
-        }
-        if ('[]' === $value) {
-            return [];
-        }
-        if ('FALSE' === $value || 'False' === $value || 'false' === $value) {
-            return false;
-        }
-        if ('NULL' === $value || 'Null' === $value || 'null' === $value || '~' === $value) {
-            return null;
-        }
-        if ('TRUE' === $value || 'True' === $value || 'true' === $value) {
-            return true;
-        }
-        if ('{}' === $value) {
-            return $array ? [] : (object) [];
-        }
         // A tag
         if ('!' === $value[0]) {
             // TODO
-        }
-        // A comment
-        if ('#' === $value[0]) {
-            return null;
         }
         // <https://yaml.org/spec/1.2.2#692-node-anchors>
         if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)(\s+|$)/', $value, $m)) {
@@ -248,6 +255,31 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
+    function c(string $value) {
+        if ('#' === $value[0]) {
+            return "";
+        }
+        if (false !== \strpos('\'"', $value[0]) && \preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')(\s*#[^\n]*)?$/', $value, $m)) {
+            return $m[1];
+        }
+        if ('[' === $value[0] && \preg_match('/\[(?>(?R)|#[^\n]*|[^][])*\]/', $value, $m, \PREG_OFFSET_CAPTURE)) {
+            if (0 === $m[0][1]) {
+                if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
+                    return $m[0][0];
+                }
+                return $value;
+            }
+        }
+        if ('{' === $value[0] && \preg_match('/\{(?>(?R)|#[^\n]*|[^{}])*\}/', $value, $m, \PREG_OFFSET_CAPTURE)) {
+            if (0 === $m[0][1]) {
+                if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
+                    return $m[0][0];
+                }
+                return $value;
+            }
+        }
+        return \trim(\strstr($value, '#', true) ?: $value);
+    }
     // <https://yaml-multiline.info>
     function f(string $value, $dent = true) {
         $content = "";
