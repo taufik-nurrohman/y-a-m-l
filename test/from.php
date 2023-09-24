@@ -91,7 +91,7 @@ foreach ($files as $v) {
     $start = microtime(true);
     $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $data = x\y_a_m_l\from($raw);
-    $out .= htmlspecialchars('php' === $view ? var_export($data, true) : json_encode($data));
+    $out .= htmlspecialchars('php' === $view ? var_export($data, true) : strtr(json_encode($data, JSON_PRETTY_PRINT), ['    ' => '  ']));
     $out .= '</pre>';
     $end = microtime(true);
     $out .= '</div>';

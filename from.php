@@ -10,19 +10,31 @@ namespace x\y_a_m_l {
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
+        if ('.INF' === $value || '.Inf' === $value || '.inf' === $value || '+.INF' === $value || '+.Inf' === $value || '+.inf' === $value) {
+            return \INF;
+        }
+        if ('-.INF' === $value || '-.Inf' === $value || '-.inf' === $value) {
+            return -\INF;
+        }
+        if ('.NAN' === $value || '.Nan' === $value || '.nan' === $value || '+.NAN' === $value || '+.Nan' === $value || '+.nan' === $value) {
+            return \NAN;
+        }
+        if ('-.NAN' === $value || '-.Nan' === $value || '-.nan' === $value) {
+            return -\NAN;
+        }
         if ('""' === $value || "''" === $value) {
             return "";
         }
         if ('[]' === $value) {
             return [];
         }
-        if ('false' === $value || 'FALSE' === $value) {
+        if ('FALSE' === $value || 'False' === $value || 'false' === $value) {
             return false;
         }
-        if ('~' === $value || 'null' === $value || 'NULL' === $value) {
+        if ('NULL' === $value || 'Null' === $value || 'null' === $value || '~' === $value) {
             return null;
         }
-        if ('true' === $value || 'TRUE' === $value) {
+        if ('TRUE' === $value || 'True' === $value || 'true' === $value) {
             return true;
         }
         if ('{}' === $value) {
@@ -35,9 +47,7 @@ namespace x\y_a_m_l {
         // <https://yaml.org/spec/1.2.2#692-node-anchors>
         if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)(\s+|$)/', $value, $m)) {
             if ('&' === $m[1]) {
-                $lot[0][$m[2]] = from($value = \substr($value, \strlen($m[0])), $array, $lot);
-                $value = &$lot[0][$m[2]];
-                return $value;
+                return ($lot[0][$m[2]] = from($value = \substr($value, \strlen($m[0])), $array, $lot));
             }
             return $lot[0][$m[2]] ?? null;
         }
@@ -59,9 +69,9 @@ namespace x\y_a_m_l {
                 "\n" . \str_repeat(' ', $dent) => "\n"
             ]), 1);
             if (isset($a[1])) {
-                $chomp = \substr($a, -1);
-                if (\is_numeric($chomp)) {
-                    $chomp = "";
+                $cut = \substr($a, -1);
+                if (\is_numeric($cut)) {
+                    $cut = "";
                     $dent = (int) \substr($a, 1);
                 } else {
                     $dent = (int) \substr($a, 1, -1);
@@ -74,23 +84,37 @@ namespace x\y_a_m_l {
                     ]), 1);
                 }
             } else {
-                $chomp = "";
+                $cut = "";
             }
-            if ("" !== $chomp && false === \strpos('+-', $chomp)) {
+            if ("" !== $cut && false === \strpos('+-', $cut)) {
                 return null; // :(
             }
-            if ('+' !== $chomp) {
-                $b = \rtrim($b) . ("" === $chomp ? "\n" : "");
+            if ('+' !== $cut) {
+                $b = \rtrim($b) . ("" === $cut ? "\n" : "");
             }
             if ('>' === $a[0]) {
                 // TODO
             }
             return $b;
         }
-        if (\is_numeric($value)) {
-            if (\strlen($value) > 1 && '0' === $value[0] && false === \strpos($value, '.')) {
-                return $value; // TODO
+        if (\strlen($value) > 2 && '0' === $value[0]) {
+            // `0xC`
+            if (\preg_match('/^0x[a-f\d]+$/i', $value)) {
+                return \hexdec($value);
             }
+            // `0777` or `0O777` or `0o777`
+            if (\preg_match('/^0o?[0-7]+$/i', $value)) {
+                if (false !== \strpos('Oo', $value[1])) {
+                    // PHP < 8.1
+                    $value = \substr($value, 2);
+                }
+                return \octdec($value);
+            }
+        }
+        if (\preg_match('/^[+-]?\d*[.]?\d+e[+-]?\d+$/i', $value)) {
+            return (float) $value;
+        }
+        if (\is_numeric($value)) {
             return false !== \strpos($value, '.') ? (float) $value : (int) $value;
         }
         $str = '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'';
@@ -102,7 +126,7 @@ namespace x\y_a_m_l {
                     $out .= 'null';
                     continue;
                 }
-                if ('FALSE' === $v || 'NULL' === $v || 'TRUE' === $v || 'false' === $v || 'null' === $v || 'true' === $v) {
+                if ('FALSE' === $v || 'NULL' === $v || 'TRUE' === $v || 'False' === $v || 'Null' === $v || 'True' === $v || 'false' === $v || 'null' === $v || 'true' === $v) {
                     $out .= \strtolower($v);
                     continue;
                 }
@@ -177,7 +201,7 @@ namespace x\y_a_m_l {
             $any = \preg_split('/:\s+/', $block, 2);
             $out[$any[0]] = isset($any[1]) ? from($any[1], $array, $lot) : null;
         }
-        return $out;
+        return $array ? $out : (object) $out;
     }
 }
 
