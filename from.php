@@ -68,13 +68,8 @@ namespace x\y_a_m_l {
         }
         // Fold-style or literal-style value
         if (false !== \strpos('>|', $value[0])) {
-            [$rule, $content] = \explode("\n", $raw, 2);
-            // Remove comment(s)
-            $content = \preg_replace('/^#.*$/m', "", $content);
-            $rule = from\c($rule);
-            // Get indent size to remove
+            [$rule, $content] = \array_replace(["", ""], \explode("\n", from\c($raw), 2));
             $dent = \strspn(\trim($content, "\n"), ' ');
-            // Remove indent(s)
             $content = \substr(\strtr("\n" . $content, [
                 "\n" . \str_repeat(' ', $dent) => "\n"
             ]), 1);
@@ -259,9 +254,6 @@ namespace x\y_a_m_l\from {
         if ('#' === $value[0]) {
             return "";
         }
-        if (false !== \strpos('\'"', $value[0]) && \preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')(\s*#[^\n]*)?$/', $value, $m)) {
-            return $m[1];
-        }
         if ('[' === $value[0] && \preg_match('/\[(?>(?R)|#[^\n]*|[^][])*\]/', $value, $m, \PREG_OFFSET_CAPTURE)) {
             if (0 === $m[0][1]) {
                 if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
@@ -277,6 +269,13 @@ namespace x\y_a_m_l\from {
                 }
                 return $value;
             }
+        }
+        if (false !== \strpos('\'"', $value[0]) && \preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')(\s*#[^\n]*)?$/', $value, $m)) {
+            return $m[1];
+        }
+        if (false !== \strpos('>|', $value[0])) {
+            [$a, $b] = \array_replace(["", ""], \explode("\n", $value, 2));
+            return \trim(\strstr($a, '#', true) ?: $a) . "\n" . \preg_replace('/^#.*$/m', "", $b);
         }
         return \trim(\strstr($value, '#', true) ?: $value);
     }
