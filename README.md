@@ -1,5 +1,5 @@
-YAML Parser
-===========
+PHP YAML Parser
+===============
 
 Usage
 -----
