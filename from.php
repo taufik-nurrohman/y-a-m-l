@@ -270,12 +270,12 @@ namespace x\y_a_m_l\from {
                 return $value;
             }
         }
-        if (false !== \strpos('\'"', $value[0]) && \preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')(\s*#[^\n]*)?$/', $value, $m)) {
-            return $m[1];
-        }
         if (false !== \strpos('>|', $value[0])) {
             [$a, $b] = \array_replace(["", ""], \explode("\n", $value, 2));
             return \trim(\strstr($a, '#', true) ?: $a) . "\n" . \preg_replace('/^#.*$/m', "", $b);
+        }
+        if (false !== \strpos('\'"', $value[0]) && \preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')(\s*#[^\n]*)?$/', $value, $m)) {
+            return $m[1];
         }
         return \trim(\strstr($value, '#', true) ?: $value);
     }
