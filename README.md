@@ -19,6 +19,23 @@ these days).
 Features
 --------
 
+### Anchor
+
+~~~ yaml
+asdf-1: &asdf 1
+asdf-2: *asdf
+asdf-3: *asdf
+~~~
+
+~~~ yaml
+asdf-1: &asdf
+  a: asdf
+  b: asdf
+  c: asdf
+asdf-2: *asdf
+asdf-3: *asdf
+~~~
+
 ### Array
 
 #### List
