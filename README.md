@@ -416,7 +416,7 @@ $variables = [
 ];
 
 if (false !== strpos($value, '{{')) {
-    $value = preg_replace_callback('/("\{\{\s*[a-z]\w*\s*\}\}"|\'\{\{\s*[a-z]\w*\s*\}\}\'|\{\{\s*[a-z]\w*\s*\}\})/', static function ($m) use ($variables) {
+    $value = preg_replace_callback('/"\{\{\s*[a-z]\w*\s*\}\}"|\'\{\{\s*[a-z]\w*\s*\}\}\'|\{\{\s*[a-z]\w*\s*\}\}/', static function ($m) use ($variables) {
         $variable = $m[0];
         // `"{{ var }}"`
         if ('"' === $variable[0] && '"' === substr($variable, -1)) {

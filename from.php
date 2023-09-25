@@ -15,8 +15,8 @@ namespace x\y_a_m_l {
             return null;
         }
         if (\array_key_exists($value, $var = [
-            "''" => "",
             '""' => "",
+            "''" => "",
             '!!binary' => \base64_decode(""),
             '!!bool' => false,
             '!!float' => 0.0,
@@ -59,12 +59,7 @@ namespace x\y_a_m_l {
         ])) {
             return $var[$value];
         }
-        $str = '\'(?>\'\'|[^\'])*\'|"(?>[^"\\\\]|\\\\.)*"';
-        if ("'" === $value[0] && "'" === \substr($value, -1)) {
-            return from\f(\strtr(\substr($value, 1, -1), [
-                "''" => "'"
-            ]), false);
-        }
+        $str = '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'';
         if ('"' === $value[0] && '"' === \substr($value, -1)) {
             try {
                 $value = \json_decode($value, false, 1, \JSON_THROW_ON_ERROR);
@@ -74,6 +69,11 @@ namespace x\y_a_m_l {
                 ]);
             }
             return from\f($value, false);
+        }
+        if ("'" === $value[0] && "'" === \substr($value, -1)) {
+            return from\f(\strtr(\substr($value, 1, -1), [
+                "''" => "'"
+            ]), false);
         }
         // Fold-style or literal-style value
         if (false !== \strpos('>|', $value[0])) {
@@ -254,7 +254,7 @@ namespace x\y_a_m_l {
         }
         $out = [];
         foreach ($blocks as $block) {
-            if (false !== \strpos('\'"', $block[0]) && \preg_match('/^(' . $str . '):\s+/', $block, $m)) {
+            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . $str . '):\s+/', $block, $m)) {
                 $out[from($m[1])] = from(\substr($block, \strlen($m[0])), $array, $lot);
                 continue;
             }
@@ -310,15 +310,11 @@ namespace x\y_a_m_l\from {
         if ('#' === $value[0]) {
             return "";
         }
-        if (false !== \strpos('\'"', $value[0])) {
-            $value = \trim($value);
-            if ("'" === $value[0] && "'" === \substr($value, -1)) {
+        if (false !== \strpos('"\'', $value[0])) {
+            if ($value[0] === \substr($value = \trim($value), -1)) {
                 return $value;
             }
-            if ('"' === $value[0] && '"' === \substr($value, -1)) {
-                return $value;
-            }
-            if (\preg_match('/^(\'(?>\'\'|[^\'])*\'|"(?>[^"\\\\]|\\\\.)*")\s*#[^\n]*$/', $value, $m)) {
+            if (\preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')\s*#[^\n]*$/', $value, $m)) {
                 return $m[1];
             }
         }
