@@ -32,7 +32,7 @@ Features
 #### Flow
 
 ~~~ yaml
-[asdf, asdf, asdf]
+[ asdf, asdf, asdf ]
 ~~~
 
 ### Object
@@ -40,16 +40,15 @@ Features
 #### Block
 
 ~~~ yaml
-asdf:
-  a: asdf
-  b: asdf
-  c: asdf
+a: asdf
+b: asdf
+c: asdf
 ~~~
 
 #### Flow
 
 ~~~ yaml
-asdf: { a: asdf, b: asdf, c: asdf }
+{ a: asdf, b: asdf, c: asdf }
 ~~~
 
 ### Comment
