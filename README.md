@@ -1,6 +1,26 @@
 PHP YAML Parser
 ===============
 
+Motivation
+----------
+
+People don’t seem to be looking for content management systems anymore. There are so many blogging services already that
+allow them to just write. Personalization and monetization don’t seem to be the main concerns anymore in this era of big
+data. Or, if monetization is their only concern, they will tend to leave it up to the services they use, limiting their
+ability to choose a web design that fits their personality.
+
+This project is actually an internal feature of my content management system [Mecha](https://github.com/mecha-cms), but
+I decided to make it a stand-alone project so that other people can use it too. People also still seem to have a
+tendency to look for PHP YAML parsers, far more than their tendency to look for content management systems that fit
+their needs. So, this project is also my attempt to drive people who need a PHP YAML parser to my content management
+system project that I’m proud of (which is apparently not very popular since people seem to be more interested in static
+site generators these days).
+
+Features
+--------
+
+_TODO_
+
 Usage
 -----
 
