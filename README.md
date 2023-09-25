@@ -236,6 +236,20 @@ null
 asdf asdf 'asdf' asdf
 ~~~
 
+### Tag
+
+Supported built-in tags:
+
+ - `!!binary`
+ - `!!bool`
+ - `!!float`
+ - `!!int`
+ - `!!map`
+ - `!!null`
+ - `!!seq`
+ - `!!str`
+ - `!!timestamp`
+
 Usage
 -----
 

@@ -224,6 +224,10 @@ namespace x\y_a_m_l {
                     $blocks[$block] .= "\n";
                     continue;
                 }
+                if (']' === $current || '}' === $current) {
+                    $blocks[$block] .= "\n" . $current;
+                    continue;
+                }
                 // A comment
                 if ('#' === $current[0]) {
                     continue;

@@ -1,6 +1,10 @@
-1: asdf
-1.5: asdf
-a:
-False: asdf
-Null: asdf
-True: asdf
+asdf-1: {
+  a: 1,
+  b: 2,
+  c: 3,
+}
+asdf-2: {
+  a: 1,
+  b: 2,
+  c: 3,
+}

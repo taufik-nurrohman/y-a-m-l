@@ -20,7 +20,20 @@ namespace x\y_a_m_l {
         } else if (true === $dent || !\is_string($dent)) {
             $dent = \str_repeat(' ', 4);
         }
-        if (\is_iterable($value)) {}
+        if (\is_iterable($value)) {
+            $out = [];
+            foreach ($value as $k => $v) {
+                if (\is_iterable($v)) {
+                    $out[] = $k . ":\n" . $dent . \strtr(to($v, $dent), [
+                        "\n" => "\n" . $dent
+                    ]);
+                    continue;
+                }
+                $out[] = $k . ': ' . to($v);
+            }
+            return \implode("\n", $out);
+        }
+        return (string) $value;
     }
 }
 

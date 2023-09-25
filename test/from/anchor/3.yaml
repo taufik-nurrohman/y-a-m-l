@@ -1,2 +1,2 @@
 asdf-1: &asdf 1
-asdf-2: [*asdf, 2, 3]
+asdf-2: [ *asdf, 2, 3 ]
