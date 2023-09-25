@@ -214,39 +214,73 @@ null
 
 #### Block
 
-##### Fold-Style
+##### Fold
 
 ~~~ yaml
->
+> # Clip (default)
   asdf asdf asdf asdf
   asdf asdf asdf asdf
 
   asdf asdf asdf asdf
 ~~~
 
-##### Literal-Style
-
 ~~~ yaml
-|
+>+ # Keep
   asdf asdf asdf asdf
   asdf asdf asdf asdf
 
   asdf asdf asdf asdf
 ~~~
 
-#### Double Quote
+~~~ yaml
+>- # Strip
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+##### Literal
+
+~~~ yaml
+| # Clip (default)
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
+|+ # Keep
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
+|- # Strip
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+#### Flow
+
+##### Double Quote
 
 ~~~ yaml
 "asdf asdf \"asdf\" asdf"
 ~~~
 
-#### Single Quote
+##### Single Quote
 
 ~~~ yaml
 'asdf asdf ''asdf'' asdf'
 ~~~
 
-#### Plain
+##### Plain
 
 ~~~ yaml
 asdf asdf 'asdf' asdf
@@ -254,7 +288,7 @@ asdf asdf 'asdf' asdf
 
 ### Tag
 
-Supported built-in tags:
+Supported [built-in types](https://yaml.org/type):
 
  - `!!binary`
  - `!!bool`
@@ -317,7 +351,7 @@ Options
  * @param bool $array If this option is set to `true`, PHP object will becomes associative array.
  * @return mixed
  */
-from(?string $value, bool $array = false): mixed;
+from(?string $value, bool $array = false, array &$lot = []): mixed;
 ~~~
 
 ~~~ php
@@ -340,7 +374,71 @@ Clone this repository into the root of your web server that supports PHP and the
 Tweaks
 ------
 
-_TODO_
+Your YAML content is represented as variable `$value`. If you modify the content before the function `from_yaml()` is
+called, it means that you modify the YAML content before it is converted. If you modify the content after the function
+`from_yaml()` is called, it means that you modify the results of the YAML conversion.
+
+### Document
+
+This converter does not support multiple document feature in one YAML file, but can be supported with a little effort:
+
+~~~ php
+// Ensure line break after `---` and `...`
+$value = preg_replace('/(^|\n)(-{3}|[.]{3})\s+/', '$1$2' . "\n", $value);
+
+// Remove `---\n` prefix if any
+if (0 === strpos($value, "---\n")) {
+    $value = substr($value, 4);
+}
+
+$values = [];
+foreach (explode("\n---\n", $value . "\n") as $v) {
+    // Remove everything after `...`
+    [$v, $else] = explode("\n...\n", "\n" . $v . "\n", 2);
+    $values[] = from_yaml(substr($v, 1));
+}
+
+var_dump($values);
+~~~
+
+### Variable
+
+There are several ways to declare variables in YAML, and all of them are not standard. The most common are variables
+with a format like `{{ var }}`. To add a variable feature, you need to convert the variable to a YAML value before
+parsing the data:
+
+~~~ php
+$variables = [
+    'var_1' => 'asdf',
+    'var_2' => true,
+    'var_3' => 1,
+    'var_4' => 1.5
+];
+
+if (false !== strpos($value, '{{')) {
+    $value = preg_replace_callback('/("\{\{\s*[a-z]\w*\s*\}\}"|\'\{\{\s*[a-z]\w*\s*\}\}\'|\{\{\s*[a-z]\w*\s*\}\})/', static function ($m) use ($variables) {
+        $variable = $m[0];
+        // `"{{ var }}"`
+        if ('"' === $variable[0] && '"' === substr($variable, -1)) {
+            $variable = substr($variable, 1, -1);
+        }
+        // `'{{ var }}'`
+        if ("'" === $variable[0] && "'" === substr($variable, -1)) {
+            $variable = substr($variable, 1, -1);
+        }
+        // Trim variable from `{{` and `}}`
+        $variable = trim(substr($variable, 2, -2));
+        // Get the variable value if available, otherwise default to `null`
+        $variable = $variables[$variable] ?? null;
+        // Return the variable value as YAML string
+        return to_yaml($variable);
+    }, $value);
+}
+
+$value = from_yaml($value);
+
+var_dump($value);
+~~~
 
 License
 -------
