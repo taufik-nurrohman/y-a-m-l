@@ -9,7 +9,7 @@ allow them to just write. Personalization and monetization don’t seem to be th
 data. Or, if monetization is their only concern, they will tend to leave it up to the services they use, limiting their
 ability to choose a web design that fits their personality.
 
-This project is actually an internal feature of my content management system [Mecha](https://github.com/mecha-cms), but
+This project is actually an internal feature of my content management system, [Mecha](https://github.com/mecha-cms), but
 I decided to make it a stand-alone project so that other people can use it too. People also still seem to have a
 tendency to look for PHP YAML parsers, far more than their tendency to look for content management systems that fit
 their needs. So, this project is also my attempt to drive people who need a PHP YAML parser to my content management
@@ -85,3 +85,20 @@ from(?string $value, bool $array = false): mixed;
  */
 to(mixed $value, bool|int|string $dent = true): ?string;
 ~~~
+
+Tests
+-----
+
+Clone this repository into the root of your web server that supports PHP and then you can open the `test/from.php` and
+`test/to.php` file with your browser to see the result and the performance of this converter in various cases.
+
+Tweaks
+------
+
+_TODO_
+
+License
+-------
+
+This library is licensed under the [MIT License](LICENSE). Please consider
+[donating 💰](https://github.com/sponsors/taufik-nurrohman) if you benefit financially from this library.
