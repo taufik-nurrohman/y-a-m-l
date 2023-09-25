@@ -10,16 +10,231 @@ data. Or, if monetization is their only concern, they will tend to leave it up t
 ability to choose a web design that fits their personality.
 
 This project is actually an internal feature of my content management system, [Mecha](https://github.com/mecha-cms), but
-I decided to make it a stand-alone project so that other people can use it too. People also still seem to have a
-tendency to look for PHP YAML parsers, far more than their tendency to look for content management systems that fit
-their needs. So, this project is also my attempt to drive people who need a PHP YAML parser to my content management
-system project that I’m proud of (which is apparently not very popular since people seem to be more interested in static
-site generators these days).
+I decided to make it a stand-alone project now so that other people can use it too. People seem to have a tendency to
+look for PHP YAML parsers, far more than their tendency to look for content management systems that fit their needs. So,
+this project is also my attempt to drive people who need a PHP YAML parser to my content management system project that
+I’m proud of (which is apparently not very popular since people seem to be more interested in static site generators
+these days).
 
 Features
 --------
 
-_TODO_
+### Array
+
+#### List
+
+~~~ yaml
+- asdf
+- asdf
+- asdf
+~~~
+
+#### Flow
+
+~~~ yaml
+[asdf, asdf, asdf]
+~~~
+
+### Object
+
+#### Block
+
+~~~ yaml
+asdf:
+  a: asdf
+  b: asdf
+  c: asdf
+~~~
+
+#### Flow
+
+~~~ yaml
+asdf: { a: asdf, b: asdf, c: asdf }
+~~~
+
+### Comment
+
+~~~ yaml
+# This is a comment.
+~~~
+
+### Scalar
+
+#### Boolean
+
+~~~ yaml
+FALSE
+~~~
+
+~~~ yaml
+False
+~~~
+
+~~~ yaml
+false
+~~~
+
+~~~ yaml
+TRUE
+~~~
+
+~~~ yaml
+True
+~~~
+
+~~~ yaml
+true
+~~~
+
+#### Constant
+
+~~~ yaml
+.INF
+~~~
+
+~~~ yaml
+.Inf
+~~~
+
+~~~ yaml
+.inf
+~~~
+
+~~~ yaml
+.NAN
+~~~
+
+~~~ yaml
+.Nan
+~~~
+
+~~~ yaml
+.nan
+~~~
+
+#### Date
+
+~~~ yaml
+2023-09-25
+~~~
+
+~~~ yaml
+2023-09-25 20:22:42
+~~~
+
+~~~ yaml
+2023-09-25T20:22:42.025Z
+~~~
+
+~~~ yaml
+2023-09-25T20:22:42+07:00
+~~~
+
+#### Number
+
+##### Float
+
+~~~ yaml
+0.5
+~~~
+
+~~~ yaml
+.5
+~~~
+
+##### Float as Exponential Number
+
+~~~ yaml
+# Case insensitive
+1.2e+34
+~~~
+
+##### Integer
+
+~~~ yaml
+12
+~~~
+
+##### Integer as Hexadecimal
+
+~~~ yaml
+# Case insensitive
+0xC
+~~~
+
+##### Integer as Octal
+
+~~~ yaml
+# Case insensitive
+0o14
+~~~
+
+~~~ yaml
+014
+~~~
+
+#### Null
+
+~~~ yaml
+NULL
+~~~
+
+~~~ yaml
+Null
+~~~
+
+~~~ yaml
+null
+~~~
+
+~~~ yaml
+~
+~~~
+
+~~~ yaml
+~~~
+
+#### String
+
+#### Block
+
+##### Fold-Style
+
+~~~ yaml
+>
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+##### Literal-Style
+
+~~~ yaml
+|
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+#### Double Quote
+
+~~~ yaml
+"asdf asdf \"asdf\" asdf"
+~~~
+
+#### Single Quote
+
+~~~ yaml
+'asdf asdf ''asdf'' asdf'
+~~~
+
+#### Plain
+
+~~~ yaml
+asdf asdf 'asdf' asdf
+~~~
 
 Usage
 -----

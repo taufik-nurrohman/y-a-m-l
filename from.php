@@ -11,12 +11,21 @@ namespace x\y_a_m_l {
             "\r" => "\n"
         ]);
         // Remove comment(s)
-        if ("" === ($value = from\c($value))) {
+        if ("" === ($value = \trim(from\c($value), "\n"))) {
             return null;
         }
         if (\array_key_exists($value, $var = [
             "''" => "",
             '""' => "",
+            '!!binary' => \base64_decode(""),
+            '!!bool' => false,
+            '!!float' => 0.0,
+            '!!int' => 0,
+            '!!map' => (object) [],
+            '!!null' => null,
+            '!!seq' => [],
+            '!!str' => "",
+            '!!timestamp' => new \DateTime,
             '+.INF' => \INF,
             '+.Inf' => \INF,
             '+.NAN' => \NAN,
@@ -50,7 +59,7 @@ namespace x\y_a_m_l {
         ])) {
             return $var[$value];
         }
-        $str = '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'';
+        $str = '\'(?>\'\'|[^\'])*\'|"(?>[^"\\\\]|\\\\.)*"';
         if ("'" === $value[0] && "'" === \substr($value, -1)) {
             return from\f(\strtr(\substr($value, 1, -1), [
                 "''" => "'"
@@ -99,7 +108,7 @@ namespace x\y_a_m_l {
             }
             if ($dent > 0) {
                 $d = \str_repeat(' ', $dent);
-                $content = \substr(\strtr("\n" . $d . \strtr($content, [
+                $content = \substr(\strtr(\strtr("\n" . $content, [
                     "\n" => "\n" . $d
                 ]), [
                     "\n" . $d . "\n" => "\n\n"
@@ -110,7 +119,7 @@ namespace x\y_a_m_l {
         if ('[' === $value[0] && ']' === \substr($value, -1) || '{' === $value[0] && '}' === \substr($value, -1)) {
             $out = "";
             // Validate to JSON
-            foreach (\preg_split('/\s*(' . $str . '|#[^\n]+|[\[\]\{\}:,])\s*/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+            foreach (\preg_split('/\s*(#[^\n]+|' . $str . '|[\[\]\{\}:,])\s*/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
                 if ('#' === $v[0]) {
                     continue;
                 }
@@ -148,14 +157,24 @@ namespace x\y_a_m_l {
         }
         // A tag
         if ('!' === $value[0]) {
-            // TODO
+            [$tag, $content] = \preg_split('/\s+/', $value, 2);
+            $value = from($content, $array, $lot);
+            if ('!!str' === $tag && $value instanceof \DateTime) {
+                return $content;
+            }
+            return from\t($value, $tag);
         }
         // <https://yaml.org/spec/1.2.2#692-node-anchors>
         if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)(\s+|$)/', $value, $m)) {
+            $key = $m[2];
             if ('&' === $m[1]) {
-                return ($lot[0][$m[2]] = from($value = \substr($value, \strlen($m[0])), $array, $lot));
+                $value = from(\substr($value, \strlen($m[0])), $array, $lot);
+                if (!isset($lot[0][$key])) {
+                    $lot[0][$key] = &$value;
+                }
+                return $value;
             }
-            return $lot[0][$m[2]] ?? null;
+            return $lot[0][$key] ?? null;
         }
         // List-style value
         if ('-' === $value[0] && \strlen($value) > 2 && false !== \strpos(" \n\t", $value[1])) {
@@ -166,11 +185,11 @@ namespace x\y_a_m_l {
             return $out;
         }
         if (\strlen($value) > 2 && '0' === $value[0]) {
-            // `0xC`
+            // Hex
             if (\preg_match('/^0x[a-f\d]+$/i', $value)) {
                 return \hexdec($value);
             }
-            // `0777` or `0O777` or `0o777`
+            // Octal
             if (\preg_match('/^0o?[0-7]+$/i', $value)) {
                 if (false !== \strpos('Oo', $value[1])) {
                     // PHP < 8.1
@@ -179,13 +198,15 @@ namespace x\y_a_m_l {
                 return \octdec($value);
             }
         }
+        // Exponent
         if (\preg_match('/^[+-]?\d*[.]?\d+e[+-]?\d+$/i', $value)) {
             return (float) $value;
         }
         if (\is_numeric($value)) {
             return false !== \strpos($value, '.') ? (float) $value : (int) $value;
         }
-        if (\is_numeric($value[0]) && \preg_match('/^[1-9]\d{3,}-(0\d|1[0-2])-(0\d|[1-2]\d|3[0-1])([ t]([0-1]\d|2[0-4])(:([0-5]\d|60)){2}([.]\d+)?([+-]([0-1]\d|2[0-4])(:([0-5]\d|60)){2}([.]\d+)?)?z?)?$/i', $value)) {
+        // <https://yaml.org/type/timestamp.html>
+        if (\is_numeric($value[0]) && \preg_match('/^[1-9]\d{3,}-(0\d|1[0-2])-(0\d|[1-2]\d|3[0-1])((t|[ \t]+)([0-1]\d|2[0-4]):([0-5]\d|60)(:([0-5]\d|60)([.]\d+)?)?([ \t]*[+-]([0-1]\d|2[0-4]):([0-5]\d|60)(:([0-5]\d|60)([.]\d+)?)?|z)?)?$/i', $value)) {
             return new \DateTime($value);
         }
         if (false === ($n = \strpos($value, ':')) || false === \strpos(" \t", \substr($value, $n + 1, 1))) {
@@ -239,7 +260,7 @@ namespace x\y_a_m_l {
                 continue;
             }
             // Fix case for invalid key-value pair(s) such as `asdf: asdf: asdf` as it should be `asdf:\n asdf: asdf`
-            if ($s && "\n" !== $s[0] && false === \strpos("\n!#&*:>[{|", $v[0])) {
+            if ($s && "\n" !== $s[0] && false === \strpos("\n!#&*:>[{|", $v[0]) && \strpos($v, ':') > 0) {
                 $out[$k] = $v;
                 continue;
             }
@@ -250,10 +271,7 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
-    function c(string $value) {
-        if ('#' === $value[0]) {
-            return "";
-        }
+    function c(string $value): string {
         if ('[' === $value[0] && \preg_match('/\[(?>(?R)|#[^\n]*|[^][])*\]/', $value, $m, \PREG_OFFSET_CAPTURE)) {
             if (0 === $m[0][1]) {
                 if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
@@ -274,13 +292,36 @@ namespace x\y_a_m_l\from {
             [$a, $b] = \array_replace(["", ""], \explode("\n", $value, 2));
             return \trim(\strstr($a, '#', true) ?: $a) . "\n" . \preg_replace('/^#.*$/m', "", $b);
         }
-        if (false !== \strpos('\'"', $value[0]) && \preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')(\s*#[^\n]*)?$/', $value, $m)) {
-            return $m[1];
+        if (false !== \strpos($value, "\n")) {
+            $out = [];
+            foreach (\explode("\n", $value) as $v) {
+                if ("" === $v) {
+                    $out[] = "";
+                    continue;
+                }
+                $out[] = c($v);
+            }
+            return \implode("\n", $out);
         }
-        return \trim(\strstr($value, '#', true) ?: $value);
+        if ('#' === $value[0]) {
+            return "";
+        }
+        if (false !== \strpos('\'"', $value[0])) {
+            $value = \trim($value);
+            if ("'" === $value[0] && "'" === \substr($value, -1)) {
+                return $value;
+            }
+            if ('"' === $value[0] && '"' === \substr($value, -1)) {
+                return $value;
+            }
+            if (\preg_match('/^(\'(?>\'\'|[^\'])*\'|"(?>[^"\\\\]|\\\\.)*")\s*#[^\n]*$/', $value, $m)) {
+                return $m[1];
+            }
+        }
+        return \rtrim(\strstr($value, '#', true) ?: $value);
     }
     // <https://yaml-multiline.info>
-    function f(string $value, $dent = true) {
+    function f(string $value, $dent = true): string {
         $content = "";
         $test = 0;
         foreach (\explode("\n", $value) as &$v) {
@@ -296,5 +337,41 @@ namespace x\y_a_m_l\from {
             $content .= ("\n" !== \substr($content, -1) ? ' ' : "") . \ltrim($v);
         }
         return \ltrim($content);
+    }
+    // <https://yaml.org/type>
+    function t($value, string $tag) {
+        if (0 === \strpos($tag, '!!')) {
+            $tag = \substr($tag, 2);
+            if ('binary' === $tag) {
+                return \base64_decode($value);
+            }
+            if ('bool' === $tag) {
+                return (bool) $value;
+            }
+            if ('float' === $tag) {
+                return (float) $value;
+            }
+            if ('int' === $tag) {
+                return (int) $value;
+            }
+            if ('map' === $tag) {
+                return (object) $value;
+            }
+            if ('null' === $tag) {
+                return null;
+            }
+            if ('seq' === $tag) {
+                return \array_values((array) $value);
+            }
+            if ('str' === $tag) {
+                return (string) $value;
+            }
+            if ('timestamp' === $tag) {
+                return new \DateTime((string) $value);
+            }
+            return $value;
+        }
+        // Ignore local tag
+        return $value;
     }
 }

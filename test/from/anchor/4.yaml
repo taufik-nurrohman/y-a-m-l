@@ -1,0 +1,2 @@
+asdf-1: &asdf 1
+asdf-2: { a: *asdf, b: 2, c: 3 }
