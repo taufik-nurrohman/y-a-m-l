@@ -327,7 +327,7 @@ namespace x\y_a_m_l\from {
         $array = '[' === $value[0];
         $out = "";
         $value = \trim(\substr($value, 1, -1));
-        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*(?>(?R)|' . str . '|[^,]*)|' . str . '|[^,]+)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*(?>(?R)|' . str . '|[^,]*)|' . str . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
                 continue;
             }
