@@ -1,7 +1,9 @@
 {
   1: asdf,
   1.5: asdf,
-  a:,
+  a,
+  b:,
+  c: ~,
   False: asdf,
   Null: asdf,
   True: asdf,

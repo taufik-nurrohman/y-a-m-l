@@ -10,7 +10,7 @@ namespace x\y_a_m_l {
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
-        if ("" === ($value = \trim(from\c($value), "\n"))) {
+        if ("" === ($value = \trim(from\c($value)))) {
             return null;
         }
         if (\array_key_exists($value, $var = [
@@ -277,63 +277,40 @@ namespace x\y_a_m_l\from {
     \define(__NAMESPACE__ . "\\str", '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'');
     // Remove comment(s)
     function c(string $value): string {
-        if ('[' === $value[0] && \preg_match('/\[(?>(?R)|#[^\n]*|' . str . '|[^][])*\]/', $value, $m, \PREG_OFFSET_CAPTURE)) {
-            if (0 === $m[0][1]) {
-                if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
-                    return $m[0][0];
-                }
-                return $value;
+        $out = "";
+        while (false !== ($v = \strpbrk($value, '#"\'>|' . "\n"))) {
+            if ("" !== ($chop = \substr($value, 0, \strlen($value) - \strlen($v)))) {
+                $out .= $chop;
+                $value = $v = \substr($value, \strlen($chop));
             }
-        }
-        if ('{' === $value[0] && \preg_match('/\{(?>(?R)|#[^\n]*|' . str . '|[^{}])*\}/', $value, $m, \PREG_OFFSET_CAPTURE)) {
-            if (0 === $m[0][1]) {
-                if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
-                    return $m[0][0];
-                }
-                return $value;
+            if (0 === \strpos($v, '#')) {
+                $chop = false !== ($n = \strpos($v, "\n")) ? \substr($v, 0, $n) : $v;
+                $value = $v = \substr($value, \strlen($chop));
+                continue;
             }
-        }
-        if (false !== \strpos('>|', $value[0])) {
-            [$a, $b] = \array_replace(["", ""], \explode("\n", $value, 2));
-            return \trim(\strstr($a, '#', true) ?: $a) . "\n" . \preg_replace('/^#.*$/m', "", $b);
-        }
-        if (false !== \strpos($value, "\n")) {
-            $out = [];
-            foreach (\explode("\n", $value) as $v) {
-                if ("" === $v) {
-                    $out[] = "";
-                    continue;
-                }
-                $test = \ltrim($v);
-                // `- '# asdf' # asdf`
-                if ('-' === $test[0] && \preg_match('/^([ \t]*-\s+(?>' . str . ')[^#]*)/', $v, $m)) {
-                    $out[] = $m[1];
-                    continue;
-                }
-                // `asdf: '# asdf' # asdf`
-                // `'# asdf': asdf # asdf`
-                if (\preg_match('/^([ \t]*(?>' . str . '|[^:]+)):(\s+)/', $v, $m)) {
-                    $out[] = $m[1] . ':' . $m[2] . c(\substr($v, \strlen($m[0])));
-                    echo '<pre style="border:1px solid">' . $m[1] . ':' . $m[2] . c(\substr($v, \strlen($m[0]))) . '</pre>';
-                    continue;
-                }
-                // `asdf # asdf`
-                $out[] = c($v);
+            if (false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
+                $out .= $chop = $m[1] . $m[3];
+                $value = $v = \substr($value, \strlen($chop));
+                continue;
             }
-            return \implode("\n", $out);
-        }
-        if ('#' === $value[0]) {
-            return "";
-        }
-        if (false !== \strpos('"\'', $value[0])) {
-            if ($value[0] === \substr($value = \trim($value), -1)) {
-                return $value;
+            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^(' . str . '[^\n]*)\s*#[^\n]*/', $v, $m)) {
+                $out .= $chop = \trim($m[1]);
+                $value = $v = \substr($value, \strlen($chop));
+                continue;
             }
-            if (\preg_match('/^(' . str . ')\s*#[^\n]*$/', $value, $m)) {
-                return $m[1];
+            if (0 === \strpos($v, "\n")) {
+                $out .= "\n";
+                $value = $v = \substr($value, 1);
+                continue;
             }
+            $out .= $chop = $v;
+            $value = "";
         }
-        return \rtrim(\strstr($value, '#', true) ?: $value);
+        if ("" !== $value) {
+            $out .= $value;
+            $chop = $value = "";
+        }
+        return $out;
     }
     function l(array $value) {
         if ([] === $value) {
@@ -372,11 +349,9 @@ namespace x\y_a_m_l\from {
     function r(string $value): string {
         $array = '[' === $value[0];
         $out = "";
-        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|#[^\n]+|(?>' . str . '|[^,:]+)\s*:\s*(?>(?R)|' . str . '|[^,]*)|' . str . '|\s*,\s*)/', \trim(\substr($value, 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+        $value = \trim(\substr($value, 1, -1));
+        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*(?>(?R)|' . str . '|[^,]*)|' . str . '|[^,]+)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
-                continue;
-            }
-            if ('#' === $v[0]) {
                 continue;
             }
             if (',' === $v) {
