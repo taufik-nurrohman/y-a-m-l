@@ -321,6 +321,11 @@ Supported [built-in types](https://yaml.org/type):
 Usage
 -----
 
+This converter can be installed using [Composer](https://packagist.org/packages/taufik-nurrohman/markdown), but it
+doesn’t need any other dependencies and just uses Composer’s ability to automatically include files. Those of you who
+don’t use Composer should be able to include the `from.php` and `to.php` files directly into your application without
+any problems.
+
 ### Using Composer
 
 From the command line interface, navigate to your project folder then run this command:
