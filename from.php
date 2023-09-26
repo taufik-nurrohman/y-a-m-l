@@ -61,6 +61,7 @@ namespace x\y_a_m_l {
         }
         if ('"' === $value[0] && '"' === \substr($value, -1)) {
             return \strtr(from\f(\strtr(\substr($value, 1, -1), [
+                "\\\"" => '"',
                 "\\\n" => ""
             ]), false), [
                 // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
