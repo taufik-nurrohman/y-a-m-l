@@ -24,28 +24,31 @@ namespace x\y_a_m_l {
             $dent = \str_repeat(' ', 4);
         }
         if (\is_string($value)) {
+            $fold = false;
             $prefix = false === \strpos(\trim($value), "\n") ? '>' : '|';
+            if ('>' === $prefix && \strlen($value) > 120) {
+                $fold = true;
+                $value = \wordwrap($value, 120, "\n");
+            }
+            $value = \preg_replace('/^[ \t]+$/m', "", \strtr($value, [
+                "\n" => "\n" . $dent
+            ]));
             if ("\n" === \substr($value, -1)) {
-                $value = \strtr(\strtr($value, [
-                    "\n" => "\n" . $dent
-                ]), [
-                    "\n" . $dent . "\n" => "\n\n"
-                ]);
                 if (false !== \strpos(" \n\t", \substr($value, -2, 1))) {
-                    return $prefix . "+\n" . $value;
+                    return $prefix . "+\n" . $dent . $value;
                 }
-                return $prefix . "\n" . $value;
+                return $prefix . "\n" . $dent . $value;
             }
-            if ('|' === $prefix) {
-                return $prefix . "\n" . $value;
+            if ($fold || '|' === $prefix) {
+                return $prefix . "-\n" . $dent . $value;
             }
-            return q($value);
+            return to\q($value);
         }
         if (\is_array($value)) {
             if ([] === $value) {
                 return '[]';
             }
-            if (l($value)) {
+            if (to\l($value)) {
                 $out = [];
                 foreach ($value as $v) {
                     $out[] = \strtr(to($v, $dent), [
@@ -62,52 +65,53 @@ namespace x\y_a_m_l {
             $out = [];
             foreach ($value as $k => $v) {
                 if (\is_iterable($v)) {
-                    $out[] = $k . ":\n" . $dent . \strtr(to($v, $dent), [
+                    $out[] = to\q($k, true) . ":\n" . $dent . \strtr(to($v, $dent), [
                         "\n" => "\n" . $dent
                     ]);
                     continue;
                 }
-                $out[] = q($k, true) . ': ' . to($v);
+                $out[] = to\q($k, true) . ': ' . to($v, $dent);
             }
             return \implode("\n", $out);
         }
-        return q((string) $value);
+        return to\q((string) $value);
     }
 }
 
 namespace x\y_a_m_l\to {
-    function l(array $v) {
+    function l(array $value) {
         // PHP >=8.1
         if (\function_exists("\\array_is_list")) {
-            return \array_is_list($v);
+            return \array_is_list($value);
         }
         $key = -1;
-        foreach ($v as $kk => $vv) {
-            if ($kk !== ++$key) {
+        foreach ($value as $k => $v) {
+            if ($k !== ++$key) {
                 return false;
             }
         }
         return true;
     }
-    // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
-    function q(string $v, $key = false): string {
-        if ("" === $v) {
+    function q(string $value, $key = false): string {
+        if ("" === $value) {
             return '""';
         }
-        if (\is_numeric($v)) {
-            return "'" . $v . "'";
+        if (\is_numeric($value)) {
+            return "'" . $value . "'";
         }
-        if (false !== \strpos(',+.INF,+.Inf,+.NAN,+.Nan,+.inf,+.nan,-.INF,-.Inf,-.NAN,-.Nan,-.inf,-.nan,.INF,.Inf,.NAN,.Nan,.inf,.nan,FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $v . ',')) {
-            return "'" . $v . "'";
+        if (false !== \strpos(',+.INF,+.Inf,+.NAN,+.Nan,+.inf,+.nan,-.INF,-.Inf,-.NAN,-.Nan,-.inf,-.nan,.INF,.Inf,.NAN,.Nan,.inf,.nan,FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $value . ',')) {
+            return "'" . $value . "'";
         }
-        if (\strlen($v) !== \strcspn($v, '!"#%&\'*,' . ($key ? "" : '-') . ':<=>?@[\\]`{|}')) {
-            return "'" . \strtr($v, [
+        if (\strlen($value) !== \strcspn($value, '!"#%&\'*,-:<=>?@[\\]`{|}')) {
+            return "'" . \strtr($value, [
                 "'" => "''"
             ]) . "'";
         }
-        if (\strlen($v) !== \strcspn($v, "\0\L\N\P\_\a\b\e\f\n\r\t\v\x01\x02\x03\x04\x05\x06\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1c\x1d\x1e\x1f")) {
-            return \json_encode($v);
+        // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
+        // TODO: \L\N\P\_\a\b\e
+        if (\strlen($value) !== \strcspn($value, "\0\f\n\r\t\v\x01\x02\x03\x04\x05\x06\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1c\x1d\x1e\x1f")) {
+            return \json_encode($value);
         }
-        return $v;
+        return $value;
     }
 }

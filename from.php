@@ -59,16 +59,48 @@ namespace x\y_a_m_l {
         ])) {
             return $var[$value];
         }
-        $str = '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'';
         if ('"' === $value[0] && '"' === \substr($value, -1)) {
-            try {
-                $value = \json_decode($value, false, 1, \JSON_THROW_ON_ERROR);
-            } catch (\Throwable $e) {
-                $value = \strtr(\substr($value, 1, -1), [
-                    '\"' => '"'
-                ]);
-            }
-            return from\f($value, false);
+            return \strtr(from\f(\strtr(\substr($value, 1, -1), [
+                "\\\n" => ""
+            ]), false), [
+                // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
+                "\\0" => "\0",
+                // "\\L" => "\L",
+                // "\\N" => "\N",
+                // "\\P" => "\P",
+                // "\\_" => "\_",
+                // "\\a" => "\a",
+                // "\\b" => "\b",
+                // "\\e" => "\e",
+                "\\f" => "\f",
+                "\\n" => "\n",
+                "\\r" => "\r",
+                "\\t" => "\t",
+                "\\v" => "\v",
+                "\\x01" => "\x01",
+                "\\x02" => "\x02",
+                "\\x03" => "\x03",
+                "\\x04" => "\x04",
+                "\\x05" => "\x05",
+                "\\x06" => "\x06",
+                "\\x0e" => "\x0e",
+                "\\x0f" => "\x0f",
+                "\\x10" => "\x10",
+                "\\x11" => "\x11",
+                "\\x12" => "\x12",
+                "\\x13" => "\x13",
+                "\\x14" => "\x14",
+                "\\x15" => "\x15",
+                "\\x16" => "\x16",
+                "\\x17" => "\x17",
+                "\\x18" => "\x18",
+                "\\x19" => "\x19",
+                "\\x1a" => "\x1a",
+                "\\x1c" => "\x1c",
+                "\\x1d" => "\x1d",
+                "\\x1e" => "\x1e",
+                "\\x1f" => "\x1f"
+            ]);
         }
         if ("'" === $value[0] && "'" === \substr($value, -1)) {
             return from\f(\strtr(\substr($value, 1, -1), [
@@ -77,7 +109,7 @@ namespace x\y_a_m_l {
         }
         // Fold-style or literal-style value
         if (false !== \strpos('>|', $value[0])) {
-            [$rule, $content] = \array_replace(["", ""], \explode("\n", from\c($raw), 2));
+            [$rule, $content] = \array_replace(["", ""], \explode("\n", from\c(\ltrim($raw)), 2));
             $dent = \strspn(\trim($content, "\n"), ' ');
             $content = \substr(\strtr("\n" . $content, [
                 "\n" . \str_repeat(' ', $dent) => "\n"
@@ -117,43 +149,7 @@ namespace x\y_a_m_l {
             return $content;
         }
         if ('[' === $value[0] && ']' === \substr($value, -1) || '{' === $value[0] && '}' === \substr($value, -1)) {
-            $out = "";
-            // Validate to JSON
-            foreach (\preg_split('/\s*(#[^\n]+|' . $str . '|[\[\]\{\}:,])\s*/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
-                if ('#' === $v[0]) {
-                    continue;
-                }
-                if ('~' === $v) {
-                    $out .= 'null';
-                    continue;
-                }
-                if ('FALSE' === $v || 'NULL' === $v || 'TRUE' === $v || 'False' === $v || 'Null' === $v || 'True' === $v || 'false' === $v || 'null' === $v || 'true' === $v) {
-                    $out .= ':' === \substr($out, -1) ? \strtolower($v) : '"' . $v . '"';
-                    continue;
-                }
-                if (\is_numeric($v)) {
-                    $out .= false !== \strpos(',:[', \substr($out, -1)) ? $v : '"' . $v . '"';
-                    continue;
-                }
-                if (false !== \strpos(',:[]{}', $v)) {
-                    $out .= $v;
-                    continue;
-                }
-                $out .= false !== \strpos(',:[]{}', $v) ? $v : \json_encode(from($v, $array, $lot), false, 1);
-            }
-            // `{1:a,2:b,3:c}`
-            $out = \preg_replace('/([+-]?\d*[.]?\d+):/', '"$1":', $out);
-            return \json_decode(\strtr(\strtr($out, [
-                // `[1,2,3,]`
-                ',]' => ']',
-                // `{a:1,b:2,c:3,}`
-                ',}' => '}',
-            ]), [
-                // `{a:,b:0}`
-                ':,' => ':null,',
-                // `{a:0,b:}`
-                ':}' => ':null}'
-            ])) ?? $value;
+            return from(from\r($value), $array, $lot);
         }
         // A tag
         if ('!' === $value[0]) {
@@ -180,6 +176,13 @@ namespace x\y_a_m_l {
         if ('-' === $value[0] && \strlen($value) > 2 && false !== \strpos(" \n\t", $value[1])) {
             $out = [];
             foreach (\preg_split('/\n-[ \n\t]/', \substr($value, 2)) as $v) {
+                if (0 === \strpos($v, '- ')) {
+                    $v = \strtr($v, [
+                        "\n  " => "\n"
+                    ]);
+                } else {
+                    $v = \trim($v);
+                }
                 $out[] = from($v, $array, $lot);
             }
             return $out;
@@ -224,7 +227,7 @@ namespace x\y_a_m_l {
                     $blocks[$block] .= "\n";
                     continue;
                 }
-                if (']' === $current || '}' === $current) {
+                if (false !== \strpos($prev, '[') && ']' === $current || false !== \strpos($prev, '{') && '}' === $current) {
                     $blocks[$block] .= "\n" . $current;
                     continue;
                 }
@@ -254,7 +257,7 @@ namespace x\y_a_m_l {
         }
         $out = [];
         foreach ($blocks as $block) {
-            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . $str . '):\s+/', $block, $m)) {
+            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . from\str . '):\s+/', $block, $m)) {
                 $out[from($m[1])] = from(\substr($block, \strlen($m[0])), $array, $lot);
                 continue;
             }
@@ -275,8 +278,12 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
+    \define(__NAMESPACE__ . "\\str", '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'');
     function c(string $value): string {
-        if ('[' === $value[0] && \preg_match('/\[(?>(?R)|#[^\n]*|[^][])*\]/', $value, $m, \PREG_OFFSET_CAPTURE)) {
+        if (0 === \strpos($value, '- ')) {
+            return $value;
+        }
+        if ('[' === $value[0] && \preg_match('/\[(?>(?R)|#[^\n]*|' . str . '|[^][])*\]/', $value, $m, \PREG_OFFSET_CAPTURE)) {
             if (0 === $m[0][1]) {
                 if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
                     return $m[0][0];
@@ -284,7 +291,7 @@ namespace x\y_a_m_l\from {
                 return $value;
             }
         }
-        if ('{' === $value[0] && \preg_match('/\{(?>(?R)|#[^\n]*|[^{}])*\}/', $value, $m, \PREG_OFFSET_CAPTURE)) {
+        if ('{' === $value[0] && \preg_match('/\{(?>(?R)|#[^\n]*|' . str . '|[^{}])*\}/', $value, $m, \PREG_OFFSET_CAPTURE)) {
             if (0 === $m[0][1]) {
                 if (0 === \strpos(\trim(\substr($value, \strlen($m[0][0]))), '#')) {
                     return $m[0][0];
@@ -314,11 +321,27 @@ namespace x\y_a_m_l\from {
             if ($value[0] === \substr($value = \trim($value), -1)) {
                 return $value;
             }
-            if (\preg_match('/^("(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\')\s*#[^\n]*$/', $value, $m)) {
+            if (\preg_match('/^(' . str . ')\s*#[^\n]*$/', $value, $m)) {
                 return $m[1];
             }
         }
         return \rtrim(\strstr($value, '#', true) ?: $value);
+    }
+    function l(array $value) {
+        if ([] === $value) {
+            return true;
+        }
+        // PHP >=8.1
+        if (\function_exists("\\array_is_list")) {
+            return \array_is_list($value);
+        }
+        $key = -1;
+        foreach ($value as $k => $v) {
+            if ($k !== ++$key) {
+                return false;
+            }
+        }
+        return true;
     }
     // <https://yaml-multiline.info>
     function f(string $value, $dent = true): string {
@@ -337,6 +360,38 @@ namespace x\y_a_m_l\from {
             $content .= ("\n" !== \substr($content, -1) ? ' ' : "") . \ltrim($v);
         }
         return \ltrim($content);
+    }
+    function r(string $value): string {
+        $array = '[' === $value[0];
+        $out = "";
+        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|\s*#[^\n]*\s*|(?>' . str . '|[^,:]+)\s*:\s*(?>' . str . '|[^,]*)|' . str . '|\s*,\s*)/', \trim(\substr($value, 1, -1)), -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+            $v = \trim($v);
+            if ('#' === $v[0]) {
+                continue;
+            }
+            if (',' === $v) {
+                $out .= "\n";
+                continue;
+            }
+            if ('[' === $v[0] && ']' === \substr($v, -1)) {
+                $out .= '- ' . \strtr(r($v), [
+                    "\n" => "\n  "
+                ]);
+                continue;
+            }
+            if ('{' === $v[0] && '}' === \substr($v, -1)) {
+                $out .= '- ' . \strtr(r($v), [
+                    "\n" => "\n  "
+                ]);
+                continue;
+            }
+            if (false === \strpos(\preg_replace('/' . str . '/', "", $v), ':')) {
+                $out .= $array ? '- ' . $v : $v . ': ~';
+                continue;
+            }
+            $out .= $array ? '- ' . $v : $v;
+        }
+        return $out;
     }
     // <https://yaml.org/type>
     function t($value, string $tag) {
