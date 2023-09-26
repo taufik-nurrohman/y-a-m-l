@@ -1,10 +1,14 @@
 <?php
 
 return [
-    'a' => [
-        'b' => 1,
-        'c' => 2,
-        'd' => true,
+    'asdf-1' => [
+        'asdf-1' => 1,
+        'asdf-2' => 1.5,
+        'asdf-3' => true,
+        'asdf-4' => INF,
+        'asdf-5' => NAN,
+        'asdf-6' => new DateTime
     ],
-    'b' => 'asdf'
+    'asdf-2' => 'asdf',
+    'asdf-3' => 'asdf asdf asdf asdf'
 ];

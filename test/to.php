@@ -14,6 +14,8 @@ define('D', DIRECTORY_SEPARATOR);
 define('P', "\u{001A}");
 define('PATH', __DIR__);
 
+date_default_timezone_set('Asia/Jakarta');
+
 require __DIR__ . D . '..' . D . 'to.php';
 
 $test = basename($_GET['test'] ?? 'scalar');
@@ -57,10 +59,6 @@ foreach (glob(__DIR__ . D . 'to' . D . '*', GLOB_ONLYDIR) as $v) {
     $out .= htmlspecialchars($n);
     $out .= '</button>';
 }
-$out .= ' ';
-$out .= '<button' . ('TEST' === $test ? ' disabled' : "") . ' name="test" type="submit" value="TEST">';
-$out .= 'TEST';
-$out .= '</button>';
 $out .= '</fieldset>';
 
 $out .= '</form>';

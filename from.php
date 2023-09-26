@@ -65,13 +65,6 @@ namespace x\y_a_m_l {
             ]), false), [
                 // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
                 "\\0" => "\0",
-                // "\\L" => "\L",
-                // "\\N" => "\N",
-                // "\\P" => "\P",
-                // "\\_" => "\_",
-                // "\\a" => "\a",
-                // "\\b" => "\b",
-                // "\\e" => "\e",
                 "\\f" => "\f",
                 "\\n" => "\n",
                 "\\r" => "\r",
@@ -304,29 +297,13 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             $out .= $chop = $v;
-            $value = "";
+            $value = $v = "";
         }
         if ("" !== $value) {
-            $out .= $value;
-            $chop = $value = "";
+            $out .= $chop = $value;
+            $value = $v = "";
         }
         return $out;
-    }
-    function l(array $value) {
-        if ([] === $value) {
-            return true;
-        }
-        // PHP >=8.1
-        if (\function_exists("\\array_is_list")) {
-            return \array_is_list($value);
-        }
-        $key = -1;
-        foreach ($value as $k => $v) {
-            if ($k !== ++$key) {
-                return false;
-            }
-        }
-        return true;
     }
     // <https://yaml-multiline.info>
     function f(string $value, $dent = true): string {

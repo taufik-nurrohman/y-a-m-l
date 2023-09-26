@@ -11,10 +11,28 @@ ability to choose a web design that fits their personality.
 
 This project is actually an internal feature of my content management system, [Mecha](https://github.com/mecha-cms), but
 I decided to make it a stand-alone project now so that other people can use it too. People seem to have a tendency to
-look for PHP YAML parsers, far more than their tendency to look for content management systems that fit their needs. So,
-this project is also my attempt to drive people who need a PHP YAML parser to my content management system project that
-I’m proud of (which is apparently not very popular since people seem to be more interested in static site generators
-these days).
+look for PHP YAML parsers, far more than their tendency to look for content management systems. So, this project is also
+my attempt to drive people who need a PHP YAML parser to my content management system project that I’m proud of (which
+is apparently not very popular since people seem to be more interested in static site generators these days).
+
+Why should you choose my YAML parser over any other similar YAML parser out there?
+
+ - [dallgoot/yaml](https://github.com/dallgoot/yaml) I haven’t had time to check this parser yet.
+ - [mustangostang/spyc](https://github.com/mustangostang/spyc) consists of one PHP file which is 35.1 KB in size and
+   contains a total of 1186 lines of code [since the time of writing][1]. It is out of date (only supports YAML 1.0 and
+   is buggy [in][2] [various][3] [cases][4]) and is still comparatively bigger than my YAML parser.
+ - [symfony/yaml](https://github.com/symfony/yaml) prioritizes reliability and stability for use in large-scale
+   applications. This library contains a lot of dependencies that will make your application overly bloated if your main
+   goal is simply to convert YAML syntax to PHP data.
+ - [yaml](https://www.php.net/book.yaml) requires that your server allows you to install the PHP extension. In terms
+   of conversion speed, it should be faster because it uses [C](https://pyyaml.org/wiki/LibYAML), but it’s not
+   guaranteed to be available on all PHP servers in the world that you can rent, considering that this PHP extension is
+   not bundled with PHP by default.
+
+ [1]: https://github.com/mustangostang/spyc/blob/b066393167c8701d1b11a3828dd08a550b3d9fa1/Spyc.php
+ [2]: https://github.com/mustangostang/spyc/issues/30
+ [3]: https://github.com/mustangostang/spyc/issues/53
+ [4]: https://github.com/mustangostang/spyc/issues/54
 
 Features
 --------
