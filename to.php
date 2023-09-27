@@ -136,22 +136,20 @@ namespace x\y_a_m_l\to {
         if ("" === $value) {
             return '""';
         }
-        if (false !== \strpos(',+.INF,+.Inf,+.NAN,+.Nan,+.inf,+.nan,-.INF,-.Inf,-.NAN,-.Nan,-.inf,-.nan,.INF,.Inf,.NAN,.Nan,.inf,.nan,FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $value . ',')) {
+        // Force single quote on a string that starts with a number, a space, `!` (start of tag), `"` or `'` (start of
+        // string), `#` (start of comment), `&` or `*` (start of anchor), `+` (start of number), `-` (start of number,
+        // start of list), `.` (start of constant), `?` (start of complex key)
+        if (false !== \strpos(' !"#&\'*+-.0123456789?', $value[0])) {
             return "'" . $value . "'";
         }
-        // Look like hex/octal
-        if (\strlen($value) > 2 && '0' === $value[0] && \preg_match('/^(0x[a-f\d]+|0o?[0-7]+)$/i', $value)) {
+        // Force single quote on a string that ends with a white-space
+        if (' ' === \substr($value, -1)) {
             return "'" . $value . "'";
         }
-        // Look like exponent
-        if (\preg_match('/^[+-]?\d*[.]?\d+e[+-]?\d+$/i', $value)) {
+        if (false !== \strpos(',FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $value . ',')) {
             return "'" . $value . "'";
         }
-        // Look like generic number
-        if (\is_numeric($value)) {
-            return "'" . $value . "'";
-        }
-        if (\strlen($value) !== \strcspn($value, '!"#%&\'*,' . ($key ? "" : '-') . ':<=>?@[\\]`{|}')) {
+        if (\strlen($value) !== \strcspn($value, '%,' . ($key ? "" : '-') . ':<=>@[\\]`{|}')) {
             return "'" . \strtr($value, [
                 "'" => "''"
             ]) . "'";
