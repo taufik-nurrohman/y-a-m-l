@@ -97,53 +97,25 @@ c: asdf
 #### Boolean
 
 ~~~ yaml
-FALSE
-~~~
-
-~~~ yaml
-False
-~~~
-
-~~~ yaml
+# Case insensitive
 false
 ~~~
 
 ~~~ yaml
-TRUE
-~~~
-
-~~~ yaml
-True
-~~~
-
-~~~ yaml
+# Case insensitive
 true
 ~~~
 
 #### Constant
 
 ~~~ yaml
+# Case insensitive
 .INF
 ~~~
 
 ~~~ yaml
-.Inf
-~~~
-
-~~~ yaml
-.inf
-~~~
-
-~~~ yaml
+# Case insensitive
 .NAN
-~~~
-
-~~~ yaml
-.Nan
-~~~
-
-~~~ yaml
-.nan
 ~~~
 
 #### Date
@@ -157,10 +129,12 @@ true
 ~~~
 
 ~~~ yaml
+# Case insensitive
 2023-09-25T20:22:42.025Z
 ~~~
 
 ~~~ yaml
+# Case insensitive
 2023-09-25T20:22:42+07:00
 ~~~
 
@@ -210,14 +184,7 @@ true
 #### Null
 
 ~~~ yaml
-NULL
-~~~
-
-~~~ yaml
-Null
-~~~
-
-~~~ yaml
+# Case insensitive
 null
 ~~~
 
@@ -243,6 +210,14 @@ null
 ~~~
 
 ~~~ yaml
+>4 # Clip and indent with 4 space(s)
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
 >+ # Keep
   asdf asdf asdf asdf
   asdf asdf asdf asdf
@@ -251,7 +226,23 @@ null
 ~~~
 
 ~~~ yaml
+>4+ # Keep and indent with 4 space(s)
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
 >- # Strip
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
+>4- # Strip and indent with 4 space(s)
   asdf asdf asdf asdf
   asdf asdf asdf asdf
 
@@ -269,6 +260,14 @@ null
 ~~~
 
 ~~~ yaml
+|4 # Clip and indent with 4 space(s)
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
 |+ # Keep
   asdf asdf asdf asdf
   asdf asdf asdf asdf
@@ -277,7 +276,23 @@ null
 ~~~
 
 ~~~ yaml
+|4+ # Keep and indent with 4 space(s)
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
 |- # Strip
+  asdf asdf asdf asdf
+  asdf asdf asdf asdf
+
+  asdf asdf asdf asdf
+~~~
+
+~~~ yaml
+|4- # Strip and indent with 4 space(s)
   asdf asdf asdf asdf
   asdf asdf asdf asdf
 
