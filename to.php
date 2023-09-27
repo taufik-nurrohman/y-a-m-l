@@ -100,10 +100,10 @@ namespace x\y_a_m_l {
                             "\n" => "\n" . $dent
                         ]);
                     }
-                    $out[] = to\q($k, true) . ':' . $v;
+                    $out[] = to\q($k) . ':' . $v;
                     continue;
                 }
-                $out[] = to\q($k, true) . ': ' . to($v, $dent);
+                $out[] = to\q($k) . ': ' . to($v, $dent);
             }
             // Prefer flow style value?
             if ($short < 4) {
@@ -132,7 +132,7 @@ namespace x\y_a_m_l\to {
         }
         return true;
     }
-    function q(string $value, $key = false): string {
+    function q(string $value): string {
         if ("" === $value) {
             return '""';
         }
@@ -140,7 +140,9 @@ namespace x\y_a_m_l\to {
         // string), `#` (start of comment), `&` or `*` (start of anchor), `+` (start of number), `-` (start of number,
         // start of list), `.` (start of constant), `?` (start of complex key)
         if (false !== \strpos(' !"#&\'*+-.0123456789?', $value[0])) {
-            return "'" . $value . "'";
+            return "'" . \strtr($value, [
+                "'" => "''"
+            ]) . "'";
         }
         // Force single quote on a string that ends with a white-space
         if (' ' === \substr($value, -1)) {
@@ -149,10 +151,9 @@ namespace x\y_a_m_l\to {
         if (false !== \strpos(',FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $value . ',')) {
             return "'" . $value . "'";
         }
-        if (\strlen($value) !== \strcspn($value, '%,' . ($key ? "" : '-') . ':<=>@[\\]`{|}')) {
-            return "'" . \strtr($value, [
-                "'" => "''"
-            ]) . "'";
+        // Force single quote on a string that contains these character(s)
+        if (\strlen($value) !== \strcspn($value, '%,:<=>@[\\]`{|}')) {
+            return "'" . $value . "'";
         }
         // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
         if (\strlen($value) !== \strcspn($value, "\0\f\n\r\t\v\x01\x02\x03\x04\x05\x06\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1c\x1d\x1e\x1f")) {
