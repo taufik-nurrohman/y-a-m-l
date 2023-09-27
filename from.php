@@ -336,7 +336,6 @@ namespace x\y_a_m_l\from {
             $out .= $array ? '- ' . $v : $v;
         }
         $out = \strtr($out, [':,' => ":\n"]); // Hot fix for case like `{a,b:,c:~}`
-        echo '<pre style="border:1px solid">' . $out . '</pre>';
         return $out;
     }
     // <https://yaml.org/type>
