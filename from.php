@@ -137,7 +137,7 @@ namespace x\y_a_m_l {
         }
         // <https://yaml.org/spec/1.2.2#692-node-anchors>
         if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)(\s+|$)/', $value, $m)) {
-            $key = $m[1] . $m[2];
+            $key = '&' . $m[2];
             if ('&' === $m[1]) {
                 $value = from(\substr($value, \strlen($m[0])), $array, $lot);
                 if (!isset($lot[0][$key])) {
