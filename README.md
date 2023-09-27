@@ -372,6 +372,7 @@ Options
  *
  * @param null|string $value Your YAML string.
  * @param bool $array If this option is set to `true`, PHP object will becomes associative array.
+ * @param array $lot Currently used to store anchor(s) and custom tag(s)
  * @return mixed
  */
 from(?string $value, bool $array = false, array &$lot = []): mixed;

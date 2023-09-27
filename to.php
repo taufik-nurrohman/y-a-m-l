@@ -33,6 +33,7 @@ namespace x\y_a_m_l {
             $dent = \str_repeat(' ', 4);
         }
         if (\is_string($value)) {
+            // TODO: Detect native indent
             $fold = false;
             $prefix = false === \strpos(\trim($value), "\n") ? '>' : '|';
             if ('>' === $prefix && \strlen($value) > 120) {
@@ -136,20 +137,17 @@ namespace x\y_a_m_l\to {
         if ("" === $value) {
             return '""';
         }
-        // Force single quote on a string that starts with a number, a space, and one of these character(s)
         if (false !== \strpos(' !"#&\'*+-.0123456789?', $value[0])) {
             return "'" . \strtr($value, [
                 "'" => "''"
             ]) . "'";
         }
-        // Force single quote on a string that ends with a space (to prevent it from being stripped off)
         if (' ' === \substr($value, -1)) {
             return "'" . $value . "'";
         }
-        if (false !== \strpos(',FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $value . ',')) {
+        if (false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',')) {
             return "'" . $value . "'";
         }
-        // Force single quote on a string that contains one of these character(s)
         if (\strlen($value) !== \strcspn($value, '%,:<=>@[\\]`{|}')) {
             return "'" . $value . "'";
         }

@@ -13,9 +13,7 @@ namespace x\y_a_m_l {
         if ("" === ($value = \trim(from\c($value)))) {
             return null;
         }
-        if (\array_key_exists($value, $var = [
-            '""' => "",
-            "''" => "",
+        if (\array_key_exists($var = \strtolower($value), $vars = [
             '!!binary' => \base64_decode(""),
             '!!bool' => false,
             '!!float' => 0.0,
@@ -25,30 +23,14 @@ namespace x\y_a_m_l {
             '!!seq' => [],
             '!!str' => "",
             '!!timestamp' => new \DateTime,
-            '+.INF' => \INF,
-            '+.Inf' => \INF,
-            '+.NAN' => \NAN,
-            '+.Nan' => \NAN,
+            '""' => "",
+            "''" => "",
             '+.inf' => \INF,
             '+.nan' => \NAN,
-            '-.INF' => -\INF,
-            '-.Inf' => -\INF,
-            '-.NAN' => -\NAN,
-            '-.Nan' => -\NAN,
             '-.inf' => -\INF,
             '-.nan' => -\NAN,
-            '.INF' => \INF,
-            '.Inf' => \INF,
-            '.NAN' => \NAN,
-            '.Nan' => \NAN,
             '.inf' => \INF,
             '.nan' => \NAN,
-            'FALSE' => false,
-            'False' => false,
-            'NULL' => null,
-            'Null' => null,
-            'TRUE' => true,
-            'True' => true,
             '[]' => [],
             'false' => false,
             'null' => null,
@@ -56,7 +38,7 @@ namespace x\y_a_m_l {
             '{}' => $array ? [] : (object) [],
             '~' => null
         ])) {
-            return $var[$value];
+            return $vars[$var];
         }
         if ('"' === $value[0] && '"' === \substr($value, -1)) {
             return \strtr(from\f(\strtr(\substr($value, 1, -1), [
@@ -148,14 +130,14 @@ namespace x\y_a_m_l {
         if ('!' === $value[0]) {
             [$tag, $content] = \preg_split('/\s+/', $value, 2);
             $value = from($content, $array, $lot);
-            if ('!!str' === $tag && $value instanceof \DateTime) {
+            if ('!!str' === $tag && !isset($lot[$tag]) && $value instanceof \DateTime) {
                 return $content;
             }
-            return from\t($value, $tag);
+            return from\t($value, $array, $lot, $tag);
         }
         // <https://yaml.org/spec/1.2.2#692-node-anchors>
         if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)(\s+|$)/', $value, $m)) {
-            $key = $m[2];
+            $key = $m[1] . $m[2];
             if ('&' === $m[1]) {
                 $value = from(\substr($value, \strlen($m[0])), $array, $lot);
                 if (!isset($lot[0][$key])) {
@@ -286,8 +268,8 @@ namespace x\y_a_m_l\from {
                 $value = $v = \substr($value, \strlen($chop));
                 continue;
             }
-            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^(' . str . '[^\n]*)\s*#[^\n]*/', $v, $m)) {
-                $out .= $chop = \trim($m[1]);
+            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . str . '[^\n#]*/', $v, $m)) {
+                $out .= $chop = \trim($m[0]);
                 $value = $v = \substr($value, \strlen($chop));
                 continue;
             }
@@ -353,10 +335,15 @@ namespace x\y_a_m_l\from {
             }
             $out .= $array ? '- ' . $v : $v;
         }
+        $out = \strtr($out, [':,' => ":\n"]); // Hot fix for case like `{a,b:,c:~}`
+        echo '<pre style="border:1px solid">' . $out . '</pre>';
         return $out;
     }
     // <https://yaml.org/type>
-    function t($value, string $tag) {
+    function t($value, $array, $lot, $tag) {
+        if (isset($lot[$tag]) && \is_callable($lot[$tag])) {
+            return \call_user_func($lot[$tag], $value, $array, $lot);
+        }
         if (0 === \strpos($tag, '!!')) {
             $tag = \substr($tag, 2);
             if ('binary' === $tag) {
@@ -388,7 +375,6 @@ namespace x\y_a_m_l\from {
             }
             return $value;
         }
-        // Ignore local tag
         return $value;
     }
 }
