@@ -136,22 +136,20 @@ namespace x\y_a_m_l\to {
         if ("" === $value) {
             return '""';
         }
-        // Force single quote on a string that starts with a number, a space, `!` (start of tag), `"` or `'` (start of
-        // string), `#` (start of comment), `&` or `*` (start of anchor), `+` (start of number), `-` (start of number,
-        // start of list), `.` (start of constant), `?` (start of complex key)
+        // Force single quote on a string that starts with a number, a space, and one of these character(s)
         if (false !== \strpos(' !"#&\'*+-.0123456789?', $value[0])) {
             return "'" . \strtr($value, [
                 "'" => "''"
             ]) . "'";
         }
-        // Force single quote on a string that ends with a white-space
+        // Force single quote on a string that ends with a space (to prevent it from being stripped off)
         if (' ' === \substr($value, -1)) {
             return "'" . $value . "'";
         }
         if (false !== \strpos(',FALSE,False,NULL,Null,TRUE,True,false,null,true,~,', ',' . $value . ',')) {
             return "'" . $value . "'";
         }
-        // Force single quote on a string that contains these character(s)
+        // Force single quote on a string that contains one of these character(s)
         if (\strlen($value) !== \strcspn($value, '%,:<=>@[\\]`{|}')) {
             return "'" . $value . "'";
         }
