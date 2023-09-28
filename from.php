@@ -187,7 +187,7 @@ namespace x\y_a_m_l {
         if (\is_numeric($value[0]) && \preg_match('/^[1-9]\d{3,}-(0\d|1[0-2])-(0\d|[1-2]\d|3[0-1])((t|[ \t]+)([0-1]\d|2[0-4]):([0-5]\d|60)(:([0-5]\d|60)([.]\d+)?)?([ \t]*[+-]([0-1]\d|2[0-4]):([0-5]\d|60)(:([0-5]\d|60)([.]\d+)?)?|z)?)?$/i', $value)) {
             return new \DateTime($value);
         }
-        if (false === ($n = \strpos($value, ':')) || false === \strpos(" \t", \substr($value, $n + 1, 1))) {
+        if (false === \strpos($value, ":\n") && false === \strpos($value, ":\t") && false === \strpos($value, ': ')) {
             return from\f($value, false);
         }
         $block = -1;
@@ -238,7 +238,7 @@ namespace x\y_a_m_l {
                 continue;
             }
             // Fix case for invalid key-value pair(s) such as `asdf: asdf: asdf` as it should be `asdf:\n asdf: asdf`
-            if ($s && "\n" !== $s[0] && false === \strpos("\n!#&*:>[{|", $v[0]) && \strpos($v, ':') > 0) {
+            if ("\n" !== \substr($s, -1) && false === \strpos('!&*:>[{|', $v[0]) && (false !== \strpos($v, ":\n") || false !== \strpos($v, ":\t") || false !== \strpos($v, ': '))) {
                 $out[$k] = $v;
                 continue;
             }

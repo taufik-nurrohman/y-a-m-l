@@ -148,7 +148,10 @@ namespace x\y_a_m_l\to {
         if (false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',')) {
             return "'" . $value . "'";
         }
-        if (\strlen($value) !== \strcspn($value, '%,:<=>@[\\]`{|}')) {
+        if (\strlen($value) !== \strcspn($value, '%,<=>@[\\]`{|}')) {
+            return "'" . $value . "'";
+        }
+        if (false !== \strpos($value, ":\n") || false !== \strpos($value, ":\t") || false !== \strpos($value, ': ')) {
             return "'" . $value . "'";
         }
         // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
