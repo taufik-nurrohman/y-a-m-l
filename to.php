@@ -32,22 +32,21 @@ namespace x\y_a_m_l {
         } else if (true === $dent || !\is_string($dent)) {
             $dent = \str_repeat(' ', 4);
         }
-        if (\is_string($value)) {
+        if (\is_string($raw = $value)) {
             if ("" !== $value && \preg_match('/[\x80-\xFF]/', $value)) {
                 return '!!binary ' . \base64_encode($value);
             }
             $d = 0;
             $flow = false;
-            $prefix = false === \strpos(\trim($value), "\n") ? '>' : '|';
+            $style = false === \strpos(\trim($value), "\n") ? '>' : '|';
             foreach (\explode("\n", $value) as $v) {
                 if ("" === $v) {
                     continue;
                 }
-                if ($test = \strspn($v, ' ')) {
-                    $d = $test > $d && $d > 0 ? $d : $test;
-                } else {
-                    $d = 0;
+                if (0 === ($test = \strspn($v, ' '))) {
+                    break;
                 }
+                $d = $test > $d && $d > 0 ? $d : $test;
             }
             if ($d > 0) {
                 $value = \substr(\strtr($value, [
@@ -57,7 +56,7 @@ namespace x\y_a_m_l {
             } else {
                 $d = "";
             }
-            if ('>' === $prefix && \strlen($value) > 120) {
+            if ('>' === $style && \strlen($value) > 120) {
                 $flow = true;
                 $value = \wordwrap($value, 120, "\n");
             }
@@ -66,14 +65,14 @@ namespace x\y_a_m_l {
             ]));
             if ("\n" === \substr($value, -1)) {
                 if (false !== \strpos(" \n\t", \substr($value, -2, 1))) {
-                    return $prefix . $d . "+\n" . $dent . $value;
+                    return $style . $d . "+\n" . $dent . $value;
                 }
-                return $prefix . $d . "\n" . $dent . $value;
+                return $style . $d . "\n" . $dent . $value;
             }
-            if ($flow || '|' === $prefix) {
-                return $prefix . $d . "-\n" . $dent . $value;
+            if ($flow || '|' === $style) {
+                return $style . $d . "-\n" . $dent . $value;
             }
-            return to\q($value);
+            return to\q($raw);
         }
         if (\is_array($value) && to\l($value)) {
             if ([] === $value) {
@@ -158,13 +157,13 @@ namespace x\y_a_m_l\to {
         if ("" === $value) {
             return '""';
         }
-        if (false !== \strpos(' !"#&\'*+-.0123456789?', $value[0])) {
+        if (' ' === $value[0] || ' ' === \substr($value, -1)) {
+            return "'" . $value . "'";
+        }
+        if (false !== \strpos('!"#&\'*+-.0123456789?', $value[0])) {
             return "'" . \strtr($value, [
                 "'" => "''"
             ]) . "'";
-        }
-        if (' ' === \substr($value, -1)) {
-            return "'" . $value . "'";
         }
         if (false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',')) {
             return "'" . $value . "'";
