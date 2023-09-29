@@ -20,6 +20,12 @@ look for PHP YAML parsers, far more than their tendency to look for content mana
 my attempt to drive people who need a PHP YAML parser to my content management system project that I’m proud of (which
 is apparently not very popular since people seem to be more interested in static site generators these days).
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/taufik-nurrohman/y-a-m-l/assets/1669261/42fd0ad8-2421-4e37-83cc-c1ec456631ec">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/taufik-nurrohman/y-a-m-l/assets/1669261/e8708ad9-1e41-4b1f-94ea-4d8aabb0ded7">
+  <img alt="Why?" src="https://github.com/taufik-nurrohman/y-a-m-l/assets/1669261/e8708ad9-1e41-4b1f-94ea-4d8aabb0ded7">
+</picture>
+
 Why should you choose my YAML parser over any other similar YAML parser out there?
 
  - [mustangostang/spyc](https://github.com/mustangostang/spyc) consists of one PHP file which is 35.1 KB in size and
