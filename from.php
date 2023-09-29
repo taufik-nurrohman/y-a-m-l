@@ -338,7 +338,6 @@ namespace x\y_a_m_l\from {
             if ('timestamp' === $tag) {
                 return new \DateTime((string) $value);
             }
-            return $value;
         }
         return $value;
     }

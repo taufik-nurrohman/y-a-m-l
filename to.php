@@ -157,22 +157,20 @@ namespace x\y_a_m_l\to {
         if ("" === $value) {
             return '""';
         }
-        if (' ' === $value[0] || ' ' === \substr($value, -1)) {
-            return "'" . $value . "'";
-        }
-        if (false !== \strpos('!"#&\'*+-.0123456789?', $value[0])) {
+        if (
+            ' ' === $value[0] ||
+            ' ' === \substr($value, -1) ||
+            ':' === \substr($value, -1) ||
+            false !== \strpos($value, ":\n") ||
+            false !== \strpos($value, ":\t") ||
+            false !== \strpos($value, ': ') ||
+            false !== \strpos('!"#&\'*+-.0123456789?', $value[0]) ||
+            false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',') ||
+            \strlen($value) !== \strcspn($value, ',<=>[\\]`{|}')
+        ) {
             return "'" . \strtr($value, [
                 "'" => "''"
             ]) . "'";
-        }
-        if (false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',')) {
-            return "'" . $value . "'";
-        }
-        if (\strlen($value) !== \strcspn($value, ',<=>[\\]`{|}')) {
-            return "'" . $value . "'";
-        }
-        if (false !== \strpos($value, ":\n") || false !== \strpos($value, ":\t") || false !== \strpos($value, ': ') || ':' === \substr($value, -1)) {
-            return "'" . $value . "'";
         }
         if ($value !== \addcslashes($value, "\\")) {
             return \json_encode($value);
