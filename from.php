@@ -146,7 +146,7 @@ namespace x\y_a_m_l {
         if (\is_numeric($value[0]) && \preg_match('/^[1-9]\d{3,}-(0\d|1[0-2])-(0\d|[1-2]\d|3[0-1])((t|[ \t]+)([0-1]\d|2[0-4]):([0-5]\d|60)(:([0-5]\d|60)([.]\d+)?)?([ \t]*[+-]([0-1]\d|2[0-4]):([0-5]\d|60)(:([0-5]\d|60)([.]\d+)?)?|z)?)?$/i', $value)) {
             return new \DateTime($value);
         }
-        if (false === \strpos($value, ":\n") && false === \strpos($value, ":\t") && false === \strpos($value, ': ')) {
+        if (false === \strpos($value, ":\n") && false === \strpos($value, ":\t") && false === \strpos($value, ': ') && ':' !== \substr($value, -1)) {
             return from\f($value, false);
         }
         $block = -1;
@@ -265,36 +265,43 @@ namespace x\y_a_m_l\from {
         return $content;
     }
     function r(string $value): string {
-        $array = '[' === $value[0];
-        $out = "";
-        $value = \trim(\substr($value, 1, -1));
-        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*(?>(?R)|' . str . '|[^,]*)|' . str . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+        $out = ($a = '[' === $value[0]) ? '- ' : "";
+        $value = \trim(\trim(\substr($value, 1, -1)), ',');
+        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*|' . str . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
                 continue;
             }
+            if (':' === \substr($v, -1)) {
+                $out .= $v . ' ';
+                continue;
+            }
             if (',' === $v) {
-                $out .= "\n";
+                $out .= "\n" . ($a ? '- ' : "");
                 continue;
             }
             if ('[' === $v[0] && ']' === \substr($v, -1)) {
-                $out .= '- ' . \strtr(r($v), [
+                if ($o = ': ' === \substr($out, -2)) {
+                    $out = \substr($out, 0, -1) . "\n";
+                }
+                $v = r($v);
+                $out .= $o ? $v : \strtr($v, [
                     "\n" => "\n  "
                 ]);
                 continue;
             }
             if ('{' === $v[0] && '}' === \substr($v, -1)) {
-                $out .= '- ' . \strtr(r($v), [
-                    "\n" => "\n  "
+                $out .= "\n " . \strtr(r($v), [
+                    "\n" => "\n "
                 ]);
                 continue;
             }
-            if (false === \strpos(\preg_replace('/' . str . '/', "", $v), ':')) {
-                $out .= $array ? '- ' . $v : $v . ': ~';
-                continue;
+            $out .= $v;
+            // Fix case for value-less object flow like `{a,b,c}`
+            $test = false !== ($v = \strrchr($out, "\n")) ? \substr($v, 1) : $out;
+            if (0 !== \strpos($test, '- ') && false === \strpos(\preg_replace('/' . str . '/', "", $test), ': ')) {
+                $out .= ':';
             }
-            $out .= $array ? '- ' . $v : $v;
         }
-        $out = \strtr($out, [':,' => ":\n"]); // Hot fix for case like `{a,b:,c:~}`
         return $out;
     }
     // <https://yaml.org/type>

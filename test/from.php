@@ -98,7 +98,7 @@ foreach ($files as $v) {
         }
     ];
     $data = x\y_a_m_l\from($raw, false, $test_data);
-    $out .= htmlspecialchars('php' === $view ? var_export($data, true) : strtr(json_encode($data, JSON_PRETTY_PRINT), ['    ' => '  ']));
+    $out .= htmlspecialchars('php' === $view ? preg_replace(['/=>\s*\n\s*/', '/\barray\s+\(/'], ['=> ', 'array('], var_export($data, true)) : strtr(json_encode($data, JSON_PRETTY_PRINT), ['    ' => '  ']));
     $out .= '</pre>';
     $end = microtime(true);
     $out .= '</div>';

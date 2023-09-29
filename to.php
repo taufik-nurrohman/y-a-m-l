@@ -172,7 +172,7 @@ namespace x\y_a_m_l\to {
         if (\strlen($value) !== \strcspn($value, ',<=>[\\]`{|}')) {
             return "'" . $value . "'";
         }
-        if (false !== \strpos($value, ":\n") || false !== \strpos($value, ":\t") || false !== \strpos($value, ': ')) {
+        if (false !== \strpos($value, ":\n") || false !== \strpos($value, ":\t") || false !== \strpos($value, ': ') || ':' === \substr($value, -1)) {
             return "'" . $value . "'";
         }
         if ($value !== \addcslashes($value, "\\")) {
