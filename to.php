@@ -33,11 +33,32 @@ namespace x\y_a_m_l {
             $dent = \str_repeat(' ', 4);
         }
         if (\is_string($value)) {
-            // TODO: Detect native indent
-            $fold = false;
+            if ("" !== $value && \preg_match('/[\x80-\xFF]/', $value)) {
+                return '!!binary ' . \base64_encode($value);
+            }
+            $d = 0;
+            $flow = false;
             $prefix = false === \strpos(\trim($value), "\n") ? '>' : '|';
+            foreach (\explode("\n", $value) as $v) {
+                if ("" === $v) {
+                    continue;
+                }
+                if ($test = \strspn($v, ' ')) {
+                    $d = $test > $d && $d > 0 ? $d : $test;
+                } else {
+                    $d = 0;
+                }
+            }
+            if ($d > 0) {
+                $value = \substr(\strtr($value, [
+                    "\n" . \str_repeat(' ', $d) => "\n"
+                ]), $d);
+                $d = (string) $d;
+            } else {
+                $d = "";
+            }
             if ('>' === $prefix && \strlen($value) > 120) {
-                $fold = true;
+                $flow = true;
                 $value = \wordwrap($value, 120, "\n");
             }
             $value = \preg_replace('/^[ \t]+$/m', "", \strtr($value, [
@@ -45,12 +66,12 @@ namespace x\y_a_m_l {
             ]));
             if ("\n" === \substr($value, -1)) {
                 if (false !== \strpos(" \n\t", \substr($value, -2, 1))) {
-                    return $prefix . "+\n" . $dent . $value;
+                    return $prefix . $d . "+\n" . $dent . $value;
                 }
-                return $prefix . "\n" . $dent . $value;
+                return $prefix . $d . "\n" . $dent . $value;
             }
-            if ($fold || '|' === $prefix) {
-                return $prefix . "-\n" . $dent . $value;
+            if ($flow || '|' === $prefix) {
+                return $prefix . $d . "-\n" . $dent . $value;
             }
             return to\q($value);
         }
@@ -148,14 +169,13 @@ namespace x\y_a_m_l\to {
         if (false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',')) {
             return "'" . $value . "'";
         }
-        if (\strlen($value) !== \strcspn($value, '%,<=>@[\\]`{|}')) {
+        if (\strlen($value) !== \strcspn($value, ',<=>[\\]`{|}')) {
             return "'" . $value . "'";
         }
         if (false !== \strpos($value, ":\n") || false !== \strpos($value, ":\t") || false !== \strpos($value, ': ')) {
             return "'" . $value . "'";
         }
-        // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
-        if (\strlen($value) !== \strcspn($value, "\0\f\n\r\t\v\x01\x02\x03\x04\x05\x06\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1c\x1d\x1e\x1f")) {
+        if ($value !== \addcslashes($value, "\\")) {
             return \json_encode($value);
         }
         return $value;

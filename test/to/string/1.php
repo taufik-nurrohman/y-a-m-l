@@ -1,1 +1,1 @@
-<?php return 'true';
+<?php return 'asdf asdf asdf asdf';

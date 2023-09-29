@@ -14,17 +14,8 @@ namespace x\y_a_m_l {
             return null;
         }
         if (\array_key_exists($var = \strtolower($value), $vars = [
-            '!!binary' => \base64_decode(""),
-            '!!bool' => false,
-            '!!float' => 0.0,
-            '!!int' => 0,
-            '!!map' => (object) [],
-            '!!null' => null,
-            '!!seq' => [],
-            '!!str' => "",
-            '!!timestamp' => new \DateTime,
-            '""' => "",
             "''" => "",
+            '""' => "",
             '+.inf' => \INF,
             '+.nan' => \NAN,
             '-.inf' => -\INF,
@@ -41,41 +32,9 @@ namespace x\y_a_m_l {
             return $vars[$var];
         }
         if ('"' === $value[0] && '"' === \substr($value, -1)) {
-            return \strtr(from\f(\strtr(\substr($value, 1, -1), [
-                "\\\"" => '"',
+            return \stripcslashes(from\f(\strtr(\substr($value, 1, -1), [
                 "\\\n" => ""
-            ]), false), [
-                // <https://symfony.com/doc/7.0/reference/formats/yaml.html>
-                "\\0" => "\0",
-                "\\f" => "\f",
-                "\\n" => "\n",
-                "\\r" => "\r",
-                "\\t" => "\t",
-                "\\v" => "\v",
-                "\\x01" => "\x01",
-                "\\x02" => "\x02",
-                "\\x03" => "\x03",
-                "\\x04" => "\x04",
-                "\\x05" => "\x05",
-                "\\x06" => "\x06",
-                "\\x0e" => "\x0e",
-                "\\x0f" => "\x0f",
-                "\\x10" => "\x10",
-                "\\x11" => "\x11",
-                "\\x12" => "\x12",
-                "\\x13" => "\x13",
-                "\\x14" => "\x14",
-                "\\x15" => "\x15",
-                "\\x16" => "\x16",
-                "\\x17" => "\x17",
-                "\\x18" => "\x18",
-                "\\x19" => "\x19",
-                "\\x1a" => "\x1a",
-                "\\x1c" => "\x1c",
-                "\\x1d" => "\x1d",
-                "\\x1e" => "\x1e",
-                "\\x1f" => "\x1f"
-            ]);
+            ])));
         }
         if ("'" === $value[0] && "'" === \substr($value, -1)) {
             return from\f(\strtr(\substr($value, 1, -1), [
@@ -128,7 +87,7 @@ namespace x\y_a_m_l {
         }
         // A tag
         if ('!' === $value[0]) {
-            [$tag, $content] = \preg_split('/\s+/', $value, 2);
+            [$tag, $content] = \array_replace(["", ""], \preg_split('/\s+/', $value, 2, \PREG_SPLIT_NO_EMPTY));
             $value = from($content, $array, $lot);
             if ('!!str' === $tag && !isset($lot[$tag]) && $value instanceof \DateTime) {
                 return $content;
@@ -291,7 +250,7 @@ namespace x\y_a_m_l\from {
     function f(string $value, $dent = true): string {
         $content = "";
         $test = 0;
-        foreach (\explode("\n", $value) as &$v) {
+        foreach (\explode("\n", $value) as $k => &$v) {
             if ("" === $v) {
                 $content .= "\n";
                 continue;
@@ -301,9 +260,9 @@ namespace x\y_a_m_l\from {
                 $content .= "\n" . $v;
                 continue;
             }
-            $content .= ("\n" !== \substr($content, -1) ? ' ' : "") . \ltrim($v);
+            $content .= ($k > 0 && "\n" !== \substr($content, -1) ? ' ' : "") . ($k > 0 ? \ltrim($v) : $v);
         }
-        return \ltrim($content);
+        return $content;
     }
     function r(string $value): string {
         $array = '[' === $value[0];
@@ -346,7 +305,7 @@ namespace x\y_a_m_l\from {
         if (0 === \strpos($tag, '!!')) {
             $tag = \substr($tag, 2);
             if ('binary' === $tag) {
-                return \base64_decode($value);
+                return \base64_decode($value ?? 'AA==');
             }
             if ('bool' === $tag) {
                 return (bool) $value;

@@ -1,0 +1,1 @@
+<?php return file_get_contents('https://avatars.githubusercontent.com/u/1669261?s=16');

@@ -1,0 +1,2 @@
+# This `!php/const` tag is defined manually in the `./test/from.php` file
+!php/const PHP_VERSION

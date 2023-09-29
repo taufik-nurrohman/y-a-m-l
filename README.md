@@ -22,7 +22,6 @@ is apparently not very popular since people seem to be more interested in static
 
 Why should you choose my YAML parser over any other similar YAML parser out there?
 
- - [dallgoot/yaml](https://github.com/dallgoot/yaml) I haven’t had time to check this parser yet.
  - [mustangostang/spyc](https://github.com/mustangostang/spyc) consists of one PHP file which is 35.1 KB in size and
    contains a total of 1186 lines of code [since the time of writing][1]. It is out of date (only supports YAML 1.0 and
    is buggy [in][2] [various][3] [cases][4]) and is still comparatively bigger than my YAML parser.
@@ -326,7 +325,7 @@ asdf asdf 'asdf' asdf
 
 ### Tag
 
-Supported [built-in types](https://yaml.org/type):
+These [built-in types](https://yaml.org/type) are supported:
 
  - `!!binary`
  - `!!bool`
@@ -337,6 +336,41 @@ Supported [built-in types](https://yaml.org/type):
  - `!!seq`
  - `!!str`
  - `!!timestamp`
+
+Users who want to add their own custom tags can define them in the `$lot` parameter of the `from()` function as a
+closure. Note that this parameter is provided as a live reference, so you cannot put an array of tag definitions
+directly into it. Instead, you must put it into a temporary variable:
+
+~~~ php
+// <https://symfony.com/doc/7.0/reference/formats/yaml.html#symfony-specific-features>
+$references = [
+    '!php/const' => static function ($value) {
+        if (is_string($value) && defined($value)) {
+            return constant($value);
+        }
+        return null;
+    },
+    '!php/enum' => static function ($value) {
+        if (!is_string($value)) {
+            return null;
+        }
+        [$a, $b] = explode('::', $value, 2);
+        if ('->value' === substr($b, -7)) {
+            return (new ReflectionEnumBackedCase($a, substr($b, 0, -7)))->getBackingValue();
+        }
+        return (new ReflectionEnumBackedCase($a, $b))->getValue();
+    },
+    '!php/object' => static function ($value) {
+        return is_string($value) ? unserialize($value) : null;
+    }
+];
+
+$value = from_yaml($value, false, $references);
+
+// Here, the `$references` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’. 
+
+var_dump($value);
+~~~
 
 Usage
 -----
