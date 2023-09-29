@@ -130,7 +130,7 @@ namespace x\y_a_m_l {
             if ($short < 4) {
                 return '{ ' . \implode(', ', $out) . ' }';
             }
-            return \implode("\n", $out);
+            return "" !== ($value = \implode("\n", $out)) ? $value : null;
         }
         return to\q((string) $value);
     }
