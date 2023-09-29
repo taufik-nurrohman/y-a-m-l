@@ -369,7 +369,7 @@ $value = from_yaml($value, false, $references);
 
 // Here, the `$references` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’. 
 
-var_dump($value);
+var_dump($references, $value);
 ~~~
 
 Usage
@@ -462,7 +462,7 @@ This converter does not support multiple document feature in one YAML file, but 
 
 ~~~ php
 // Ensure line break after `---` and `...`
-$value = preg_replace('/(^|\n)(-{3}|[.]{3})\s+/', '$1$2' . "\n", $value);
+$value = preg_replace('/^(-{3}|[.]{3})\s+/m', '$1' . "\n", $value);
 
 // Remove `---\n` prefix if any
 if (0 === strpos($value, "---\n")) {
@@ -472,8 +472,8 @@ if (0 === strpos($value, "---\n")) {
 $values = [];
 foreach (explode("\n---\n", $value . "\n") as $v) {
     // Remove everything after `...`
-    [$v, $else] = explode("\n...\n", "\n" . $v . "\n", 2);
-    $values[] = from_yaml(substr($v, 1));
+    $v = explode("\n...\n", $v . "\n", 2)[0];
+    $values[] = from_yaml($v);
 }
 
 var_dump($values);
