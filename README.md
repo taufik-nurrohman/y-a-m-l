@@ -11,8 +11,8 @@ Motivation
 
 People don’t seem to be looking for content management systems anymore. There are so many blogging services already that
 allow them to just write. Personalization and monetization don’t seem to be the main concerns anymore in this era of big
-data. Or, if monetization is their only concern, they will tend to leave it up to the services they use, limiting their
-ability to choose a web design that fits their personality.
+data. Or, if monetization is their only concern, they will tend to leave it up to the services they use, sacrificing
+their freedom to pick a web design that fits their personality.
 
 This project is actually an internal feature of my content management system, [Mecha](https://github.com/mecha-cms), but
 I decided to make it a stand-alone project now so that other people can use it too. People seem to have a tendency to
@@ -512,7 +512,7 @@ if (false !== strpos($value, '{{')) {
         }
         // Trim variable from `{{` and `}}`
         $variable = trim(substr($variable, 2, -2));
-        // Get the variable value if available, otherwise default to `null`
+        // Get the variable value if available, default to `null`
         $variable = $variables[$variable] ?? null;
         // Return the variable value as YAML string
         return to_yaml($variable);
