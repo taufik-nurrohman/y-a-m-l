@@ -404,7 +404,7 @@ use function x\y_a_m_l\to as to_yaml;
 
 require 'vendor/autoload.php';
 
-echo from_yaml('asdf: asdf'); // Returns `(object) ['asdf' => 'asdf']`
+var_export(from_yaml('asdf: asdf')); // Returns `(object) ['asdf' => 'asdf']`
 ~~~
 
 ### Using File
@@ -420,7 +420,7 @@ use function x\y_a_m_l\to as to_yaml;
 require 'from.php';
 require 'to.php';
 
-echo from_yaml('asdf: asdf'); // Returns `(object) ['asdf' => 'asdf']`
+var_export(from_yaml('asdf: asdf')); // Returns `(object) ['asdf' => 'asdf']`
 ~~~
 
 Options
