@@ -331,7 +331,7 @@ asdf asdf 'asdf' asdf
 
 ### Tag
 
-These [built-in types](https://yaml.org/type) are supported:
+These [built-in tags](https://yaml.org/type) are supported:
 
  - `!!binary`
  - `!!bool`
@@ -349,7 +349,7 @@ directly into it. Instead, you must put it into a temporary variable:
 
 ~~~ php
 // <https://symfony.com/doc/7.0/reference/formats/yaml.html#symfony-specific-features>
-$references = [
+$lot = [
     '!php/const' => static function ($value) {
         if (is_string($value) && defined($value)) {
             return constant($value);
@@ -371,11 +371,11 @@ $references = [
     }
 ];
 
-$value = from_yaml($value, false, $references);
+$value = from_yaml($value, false, $lot);
 
-// Here, the `$references` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’. 
+// Here, the `$lot` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’. 
 
-var_dump($references, $value);
+var_dump($lot, $value);
 ~~~
 
 Usage
