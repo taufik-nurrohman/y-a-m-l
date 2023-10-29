@@ -373,7 +373,7 @@ $lot = [
 
 $value = from_yaml($value, false, $lot);
 
-// Here, the `$lot` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’. 
+// Here, the `$lot` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’.
 
 var_dump($lot, $value);
 ~~~

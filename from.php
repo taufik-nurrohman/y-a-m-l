@@ -22,7 +22,7 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             if (false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
-                $out .= $chop = $m[1] . $m[3];
+                $out .= $chop = $m[1] . ($m[3] ?? "");
                 $value = $v = \substr($value, \strlen($chop));
                 continue;
             }
