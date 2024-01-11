@@ -3,8 +3,8 @@ PHP YAML Parser
 
 ![from.php] ![to.php]
 
-[from.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/from.php?branch=main&color=%237a86b8&label=from.php&labelColor=%23666666&style=flat-square
-[to.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/to.php?branch=main&color=%237a86b8&label=to.php&labelColor=%23666666&style=flat-square
+[from.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/from.php?branch=main&color=%234f5d95&label=from.php&labelColor=%231f2328&style=flat-square
+[to.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/to.php?branch=main&color=%234f5d95&label=from.php&labelColor=%231f2328&style=flat-square
 
 Motivation
 ----------
