@@ -12,36 +12,36 @@ namespace x\y_a_m_l\from {
     function c(string $value): string {
         $out = "";
         while (false !== ($v = \strpbrk($value, '#"\'>|' . "\n"))) {
-            if ("" !== ($chop = \substr($value, 0, \strlen($value) - \strlen($v)))) {
-                $out .= $chop;
-                $value = $v = \substr($value, \strlen($chop));
+            if ("" !== ($r = \substr($value, 0, \strlen($value) - \strlen($v)))) {
+                $out .= $r;
+                $value = \substr($value, \strlen($r));
             }
             if (0 === \strpos($v, '#')) {
-                $chop = false !== ($n = \strpos($v, "\n")) ? \substr($v, 0, $n) : $v;
-                $value = $v = \substr($value, \strlen($chop));
+                $v = false !== ($n = \strpos($v, "\n")) ? \substr($v, 0, $n) : $v;
+                $value = \substr($value, \strlen($v));
                 continue;
             }
             if (false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
-                $out .= $chop = $m[1] . ($m[3] ?? "");
-                $value = $v = \substr($value, \strlen($chop));
+                $out .= $v = $m[1] . ($m[3] ?? "");
+                $value = \substr($value, \strlen($v));
                 continue;
             }
             if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . str . '[^\n#]*/', $v, $m)) {
-                $out .= $chop = \trim($m[0]);
-                $value = $v = \substr($value, \strlen($chop));
+                $out .= $v = \trim($m[0]);
+                $value = \substr($value, \strlen($v));
                 continue;
             }
             if (0 === \strpos($v, "\n")) {
                 $out .= "\n";
-                $value = $v = \substr($value, 1);
+                $value = \substr($value, 1);
                 continue;
             }
-            $out .= $chop = $v;
-            $value = $v = "";
+            $out .= $v;
+            $value = "";
         }
         if ("" !== $value) {
-            $out .= $chop = $value;
-            $value = $v = "";
+            $out .= $value;
+            $value = "";
         }
         return $out;
     }

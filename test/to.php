@@ -64,18 +64,18 @@ $out .= '</fieldset>';
 $out .= '</form>';
 
 foreach ($files as $v) {
-    $content = "";
     $data = require $v;
     $out .= '<h1 id="' . ($n = basename(dirname($v)) . ':' . basename($v, '.php')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
     $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $out .= htmlspecialchars(preg_replace(['/=>\s*\n\s*/', '/\barray\s+\(/'], ['=> ', 'array('], var_export($data, true)));
     $out .= '</pre>';
-    $start = microtime(true);
     $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-    $out .= htmlspecialchars(x\y_a_m_l\to($data, 2));
-    $out .= '</pre>';
+    $start = microtime(true);
+    $content = x\y_a_m_l\to($data, 2);
     $end = microtime(true);
+    $out .= htmlspecialchars($content);
+    $out .= '</pre>';
     $out .= '</div>';
     $time = round(($end - $start) * 1000, 2);
     $out .= '<p style="color:#' . ($time >= 1 ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
