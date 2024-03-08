@@ -462,6 +462,28 @@ Your YAML content is represented as variable `$value`. If you modify the content
 called, it means that you modify the YAML content before it is converted. If you modify the content after the function
 `from_yaml()` is called, it means that you modify the results of the YAML conversion.
 
+### Globally Reusable Functions
+
+To make `from_yaml()` and `to_yaml()` functions reusable globally, use this method:
+
+~~~ php
+<?php
+
+require 'from.php';
+require 'to.php';
+
+// Or, if you are using Composer…
+// require 'vendor/autoload.php';
+
+function from_yaml(...$v) {
+    return x\y_a_m_l\from(...$v);
+}
+
+function to_yaml(...$v) {
+    return x\y_a_m_l\to(...$v);
+}
+~~~
+
 ### Document
 
 This converter does not support multiple document feature in one YAML file, but can be supported with a little effort:
