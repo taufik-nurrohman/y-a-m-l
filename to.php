@@ -60,8 +60,9 @@ namespace x\y_a_m_l {
                 $flow = true;
                 $value = \wordwrap($value, 120, "\n");
             }
-            $value = \preg_replace('/^[ \t]+$/m', "", \strtr($value, [
-                "\n" => "\n" . $dent
+            $v = "" !== $d ? \str_repeat(' ', (int) $d) : "";
+            $value = $v . \preg_replace('/^[ \t]+$/m', "", \strtr($value, [
+                "\n" => "\n" . $dent . $v
             ]));
             if ("\n" === \substr($value, -1)) {
                 if (false !== \strpos(" \n\t", \substr($value, -2, 1))) {
