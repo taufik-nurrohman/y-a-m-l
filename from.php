@@ -7,7 +7,7 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
-    \define(__NAMESPACE__ . "\\str", '"(?>[^"\\\\]|\\\\.)*"|\'(?>\'\'|[^\'])*\'');
+    \define(__NAMESPACE__ . "\\str", '"(?>\\.|[^"])*"|\'(?>\'\'|[^\'])*\'');
     // Remove comment(s)
     function c(string $value): string {
         $out = "";
