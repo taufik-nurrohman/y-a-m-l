@@ -22,13 +22,13 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             if (false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
-                $out .= $v = $m[1] . ($m[3] ?? "");
-                $value = \substr($value, \strlen($v));
+                $out .= $m[1] . ($m[3] ?? "");
+                $value = \substr($value, \strlen($m[0]));
                 continue;
             }
             if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . str . '[^\n#]*/', $v, $m)) {
-                $out .= $v = \trim($m[0]);
-                $value = \substr($value, \strlen($v));
+                $out .= \trim($m[0]);
+                $value = \substr($value, \strlen($m[0]));
                 continue;
             }
             if (0 === \strpos($v, "\n")) {
@@ -189,13 +189,13 @@ namespace x\y_a_m_l\from {
             ]), 1);
             if (isset($rule[1])) {
                 $cut = \substr($rule, -1);
-                // `>4`
+                // `>1`
                 if (\is_numeric($cut)) {
                     $cut = "";
-                    $dent = (int) \substr($rule, 1);
-                // `>4+`
+                    $dent -= ((int) \substr($rule, 1));
+                // `>1+`
                 } else {
-                    $dent = (int) \substr($rule, 1, -1);
+                    $dent -= ((int) \substr($rule, 1, -1));
                 }
             // `>`
             } else {
@@ -218,6 +218,8 @@ namespace x\y_a_m_l\from {
                 ]), [
                     "\n" . $d . "\n" => "\n\n"
                 ]), 1);
+            } else {
+                // throw new \Exception('https://yaml.org/spec/1.2.2#8111-block-indentation-indicator');
             }
             return $content;
         }

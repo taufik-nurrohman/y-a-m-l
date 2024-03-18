@@ -220,11 +220,11 @@ null
 ~~~
 
 ~~~ yaml
->4 # Clip and indent with 4 space(s)
-  asdf asdf asdf asdf
-  asdf asdf asdf asdf
+>4 # Clip and indent with 2 space(s)
+      asdf asdf asdf asdf
+      asdf asdf asdf asdf
 
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
 ~~~
 
 ~~~ yaml
@@ -236,11 +236,11 @@ null
 ~~~
 
 ~~~ yaml
->4+ # Keep and indent with 4 space(s)
-  asdf asdf asdf asdf
-  asdf asdf asdf asdf
+>4+ # Keep and indent with 2 space(s)
+      asdf asdf asdf asdf
+      asdf asdf asdf asdf
 
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
 ~~~
 
 ~~~ yaml
@@ -253,10 +253,10 @@ null
 
 ~~~ yaml
 >4- # Strip and indent with 4 space(s)
-  asdf asdf asdf asdf
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
+      asdf asdf asdf asdf
 
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
 ~~~
 
 ##### Literal
@@ -271,10 +271,10 @@ null
 
 ~~~ yaml
 |4 # Clip and indent with 4 space(s)
-  asdf asdf asdf asdf
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
+      asdf asdf asdf asdf
 
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
 ~~~
 
 ~~~ yaml
@@ -287,10 +287,10 @@ null
 
 ~~~ yaml
 |4+ # Keep and indent with 4 space(s)
-  asdf asdf asdf asdf
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
+      asdf asdf asdf asdf
 
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
 ~~~
 
 ~~~ yaml
@@ -303,10 +303,10 @@ null
 
 ~~~ yaml
 |4- # Strip and indent with 4 space(s)
-  asdf asdf asdf asdf
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
+      asdf asdf asdf asdf
 
-  asdf asdf asdf asdf
+      asdf asdf asdf asdf
 ~~~
 
 #### Flow
