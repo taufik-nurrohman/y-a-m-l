@@ -21,7 +21,7 @@ namespace x\y_a_m_l\from {
                 $value = \substr($value, \strlen($v));
                 continue;
             }
-            if (false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
+            if ("" === $out && false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
                 $out .= $m[1] . ($m[3] ?? "");
                 $value = \substr($value, \strlen($m[0]));
                 continue;
@@ -37,7 +37,7 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             $out .= $v;
-            $value = "";
+            $value = \substr($value, \strlen($v));
         }
         if ("" !== $value) {
             $out .= $value;
@@ -203,7 +203,7 @@ namespace x\y_a_m_l\from {
                 $dent = 0;
             }
             if ("" !== $cut && false === \strpos('+-', $cut)) {
-                return null; // :(
+                return $raw;
             }
             if ('+' !== $cut) {
                 $content = \rtrim($content) . ("" === $cut ? "\n" : "");
