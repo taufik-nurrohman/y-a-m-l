@@ -24,7 +24,7 @@ namespace x\y_a_m_l {
         if (\is_int($value)) {
             return (string) $value;
         }
-        if ($value instanceof \DateTime) {
+        if ($value instanceof \DateTimeInterface) {
             return $value->format('c');
         }
         if (\is_int($dent)) {

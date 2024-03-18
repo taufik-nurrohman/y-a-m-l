@@ -228,7 +228,7 @@ namespace x\y_a_m_l\from {
         if ('!' === $value[0]) {
             [$tag, $content] = \array_replace(["", ""], \preg_split('/\s+/', $value, 2, \PREG_SPLIT_NO_EMPTY));
             $value = v($content, $array, $lot);
-            if ('!!str' === $tag && !isset($lot[$tag]) && $value instanceof \DateTime) {
+            if ('!!str' === $tag && !isset($lot[$tag]) && $value instanceof \DateTimeInterface) {
                 return $content;
             }
             return t($value, $array, $lot, $tag);
