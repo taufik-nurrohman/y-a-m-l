@@ -111,7 +111,7 @@ namespace x\y_a_m_l\from {
         if (0 === \strpos($tag, '!!')) {
             $tag = \substr($tag, 2);
             if ('binary' === $tag) {
-                return \base64_decode(\trim(\preg_replace('/\s+/', "", $value ?? 'AA==')));
+                return \base64_decode(\preg_replace('/\s+/', "", \trim($value ?? 'AA==')));
             }
             if ('bool' === $tag) {
                 return (bool) $value;
