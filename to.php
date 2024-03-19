@@ -33,8 +33,12 @@ namespace x\y_a_m_l {
             $dent = \str_repeat(' ', 4);
         }
         if (\is_string($raw = $value)) {
-            if ("" !== $value && \preg_match('/[\x80-\xFF]/', $value)) {
-                return '!!binary ' . \base64_encode($value);
+            if ("" !== $value && false !== \strpos($value, "\0")) {
+                $value = \base64_encode($value);
+                if (\strlen($value) <= 111) {
+                    return '!!binary ' . $value;
+                }
+                return "!!binary |\n" . $dent . \rtrim(\chunk_split($value, 120, "\n" . $dent));
             }
             $d = 0;
             $flow = false;

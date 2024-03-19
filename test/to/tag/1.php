@@ -1,1 +1,1 @@
-<?php return file_get_contents('https://avatars.githubusercontent.com/u/1669261?s=16');
+<?php return file_get_contents(__DIR__ . '/../../asdf.png');
