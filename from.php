@@ -11,7 +11,11 @@ namespace x\y_a_m_l\from {
     // Remove comment(s)
     function c(string $value): string {
         $out = "";
-        while (false !== ($v = \strpbrk($value, '#"\'>|' . "\n"))) {
+        if (false !== \strpos('>|', $value[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $value, $m)) {
+            $out .= $m[1] . ($m[3] ?? "");
+            $value = \substr($value, \strlen($m[0]));
+        }
+        while (false !== ($v = \strpbrk($value, '#"\'' . "\n"))) {
             if ("" !== ($r = \substr($value, 0, \strlen($value) - \strlen($v)))) {
                 $out .= $r;
                 $value = \substr($value, \strlen($r));
@@ -19,11 +23,6 @@ namespace x\y_a_m_l\from {
             if (0 === \strpos($v, '#')) {
                 $v = false !== ($n = \strpos($v, "\n")) ? \substr($v, 0, $n) : $v;
                 $value = \substr($value, \strlen($v));
-                continue;
-            }
-            if ("" === $out && false !== \strpos('>|', $v[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $v, $m)) {
-                $out .= $m[1] . ($m[3] ?? "");
-                $value = \substr($value, \strlen($m[0]));
                 continue;
             }
             if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . str . '[^\n#]*/', $v, $m)) {
@@ -212,7 +211,8 @@ namespace x\y_a_m_l\from {
                 $content = f($content);
             }
             if ($dent > 0) {
-                $d = \str_repeat(' ', $dent);
+                $test = \substr($rule, 1, 1);
+                $d = '0' !== $test && \is_numeric($test) ? \str_repeat(' ', $dent) : "";
                 $content = \substr(\strtr(\strtr("\n" . $content, [
                     "\n" => "\n" . $d
                 ]), [
