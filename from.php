@@ -11,7 +11,7 @@ namespace x\y_a_m_l\from {
     // Remove comment(s)
     function c(string $value): string {
         $out = "";
-        if (false !== \strpos('>|', $value[0]) && \preg_match('/^([>|]\d*[+-]?)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $value, $m)) {
+        if (false !== \strpos('>|', $value[0]) && \preg_match('/^([>|][+-]?\d*)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $value, $m)) {
             $out .= $m[1] . ($m[3] ?? "");
             $value = \substr($value, \strlen($m[0]));
         }
@@ -187,15 +187,14 @@ namespace x\y_a_m_l\from {
                 "\n" . \str_repeat(' ', $dent) => "\n"
             ]), 1);
             $d = 0;
-            if (isset($rule[1])) {
-                $cut = \substr($rule, -1);
+            if ($cut = $rule[1] ?? "") {
+                // `>+1`
+                if (false !== \strpos('+-', $cut)) {
+                    $dent -= ($d = (int) \substr($rule, 2));
                 // `>1`
-                if (\is_numeric($cut)) {
+                } else if (\is_numeric($cut)) {
                     $cut = "";
                     $dent -= ($d = (int) \substr($rule, 1));
-                // `>1+`
-                } else {
-                    $dent -= ($d = (int) \substr($rule, 1, -1));
                 }
             // `>`
             } else {
@@ -211,17 +210,16 @@ namespace x\y_a_m_l\from {
             if ('>' === $rule[0]) {
                 $content = f($content);
             }
-            if ($dent >= 0) {
-                $v = $d > 0 ? \str_repeat(' ', $dent) : "";
-                $content = \substr(\strtr(\strtr("\n" . $content, [
-                    "\n" => "\n" . $v
-                ]), [
-                    "\n" . $v . "\n" => "\n\n"
-                ]), 1);
-            } else {
+            if ($dent < 0) {
                 // throw new \Exception('https://yaml.org/spec/1.2.2#8111-block-indentation-indicator');
+                return null;
             }
-            return $content;
+            $v = $d > 0 ? \str_repeat(' ', $dent) : "";
+            return \substr(\strtr(\strtr("\n" . $content, [
+                "\n" => "\n" . $v
+            ]), [
+                "\n" . $v . "\n" => "\n\n"
+            ]), 1);
         }
         if ('[' === $value[0] && ']' === \substr($value, -1) || '{' === $value[0] && '}' === \substr($value, -1)) {
             return v(r($value), $array, $lot);

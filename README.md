@@ -236,7 +236,7 @@ null
 ~~~
 
 ~~~ yaml
->4+ # Keep and indent with 2 space(s)
+>+4 # Keep and indent with 2 space(s)
       asdf asdf asdf asdf
       asdf asdf asdf asdf
 
@@ -252,7 +252,7 @@ null
 ~~~
 
 ~~~ yaml
->4- # Strip and indent with 2 space(s)
+>-4 # Strip and indent with 2 space(s)
       asdf asdf asdf asdf
       asdf asdf asdf asdf
 
@@ -286,7 +286,7 @@ null
 ~~~
 
 ~~~ yaml
-|4+ # Keep and indent with 2 space(s)
+|+4 # Keep and indent with 2 space(s)
       asdf asdf asdf asdf
       asdf asdf asdf asdf
 
@@ -302,7 +302,7 @@ null
 ~~~
 
 ~~~ yaml
-|4- # Strip and indent with 2 space(s)
+|-4 # Strip and indent with 2 space(s)
       asdf asdf asdf asdf
       asdf asdf asdf asdf
 

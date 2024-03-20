@@ -70,12 +70,12 @@ namespace x\y_a_m_l {
             ]));
             if ("\n" === \substr($value, -1)) {
                 if (false !== \strpos(" \n\t", \substr($value, -2, 1))) {
-                    return $style . $d . "+\n" . $dent . $value;
+                    return $style . '+' . $d . "\n" . $dent . $value;
                 }
                 return $style . $d . "\n" . $dent . $value;
             }
             if ($flow || '|' === $style) {
-                return $style . $d . "-\n" . $dent . $value;
+                return $style . '-' . $d . "\n" . $dent . $value;
             }
             return to\q($raw);
         }
