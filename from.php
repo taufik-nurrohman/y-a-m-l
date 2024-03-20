@@ -186,15 +186,16 @@ namespace x\y_a_m_l\from {
             $content = \substr(\strtr("\n" . $content, [
                 "\n" . \str_repeat(' ', $dent) => "\n"
             ]), 1);
+            $d = 0;
             if (isset($rule[1])) {
                 $cut = \substr($rule, -1);
                 // `>1`
                 if (\is_numeric($cut)) {
                     $cut = "";
-                    $dent -= ((int) \substr($rule, 1));
+                    $dent -= ($d = (int) \substr($rule, 1));
                 // `>1+`
                 } else {
-                    $dent -= ((int) \substr($rule, 1, -1));
+                    $dent -= ($d = (int) \substr($rule, 1, -1));
                 }
             // `>`
             } else {
@@ -210,13 +211,12 @@ namespace x\y_a_m_l\from {
             if ('>' === $rule[0]) {
                 $content = f($content);
             }
-            if ($dent > 0) {
-                $test = \substr($rule, 1, 1);
-                $d = '0' !== $test && \is_numeric($test) ? \str_repeat(' ', $dent) : "";
+            if ($dent >= 0) {
+                $v = $d > 0 ? \str_repeat(' ', $dent) : "";
                 $content = \substr(\strtr(\strtr("\n" . $content, [
-                    "\n" => "\n" . $d
+                    "\n" => "\n" . $v
                 ]), [
-                    "\n" . $d . "\n" => "\n\n"
+                    "\n" . $v . "\n" => "\n\n"
                 ]), 1);
             } else {
                 // throw new \Exception('https://yaml.org/spec/1.2.2#8111-block-indentation-indicator');
