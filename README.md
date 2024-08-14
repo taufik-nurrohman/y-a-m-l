@@ -64,6 +64,10 @@ asdf-2: *asdf
 asdf-3: *asdf
 ~~~
 
+Unlike the official PHP [`yaml`](https://www.php.net/book.yaml) extension, this anchor feature only duplicates the
+values and does not perform proper memory management by linking the anchored values to their aliases as
+[references](https://www.php.net/manual/en/language.references.return.php).
+
 ### Array
 
 #### List

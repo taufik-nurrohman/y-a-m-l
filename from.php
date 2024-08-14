@@ -332,11 +332,7 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             // Fix case for invalid key-value pair(s) such as `asdf: asdf: asdf` as it should be `asdf:\n asdf: asdf`
-            if ("\n" !== \substr($s, -1) && false === \strpos('!&*:>[{|', $v[0]) && (false !== \strpos($v, ":\n") || false !== \strpos($v, ":\t") || false !== \strpos($v, ': '))) {
-                // <https://github.com/taufik-nurrohman/y-a-m-l/issues/2>
-                if ($v && ('"' === $v[0] && '"' === \substr($v, -1) || "'" === $v[0] && "'" === \substr($v, -1))) {
-                    $v = v($v);
-                }
+            if ("\n" !== \substr($s, -1) && false === \strpos('!"&\'*:>[{|', $v[0]) && (false !== \strpos($v, ":\n") || false !== \strpos($v, ":\t") || false !== \strpos($v, ': '))) {
                 $out[$k] = $v;
                 continue;
             }
