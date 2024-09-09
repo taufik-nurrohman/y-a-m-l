@@ -7,7 +7,7 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
-    \define(__NAMESPACE__ . "\\str", '"(?>\\.|[^"])*"|\'(?>\'\'|[^\'])*\'');
+    \define(__NAMESPACE__ . "\\r1", '"(?>\\.|[^"])*"|\'(?>\'\'|[^\'])*\'');
     // Remove comment(s)
     function c(string $value): string {
         $out = "";
@@ -25,7 +25,7 @@ namespace x\y_a_m_l\from {
                 $value = \substr($value, \strlen($v));
                 continue;
             }
-            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . str . '[^\n#]*/', $v, $m)) {
+            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . r1 . '[^\n#]*/', $v, $m)) {
                 $out .= \trim($m[0]);
                 $value = \substr($value, \strlen($m[0]));
                 continue;
@@ -65,7 +65,7 @@ namespace x\y_a_m_l\from {
     function r(string $value): string {
         $out = ($a = '[' === $value[0]) ? '- ' : "";
         $value = \trim(\trim(\substr($value, 1, -1)), ',');
-        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*|' . str . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . r1 . '|[^,:]+)\s*:\s*|' . r1 . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
                 continue;
             }
@@ -96,7 +96,7 @@ namespace x\y_a_m_l\from {
             $out .= $v;
             // Fix case for value-less object flow like `{a,b,c}`
             $test = false !== ($v = \strrchr($out, "\n")) ? \substr($v, 1) : $out;
-            if (0 !== \strpos($test, '- ') && false === \strpos(\preg_replace('/' . str . '/', "", $test), ': ')) {
+            if (0 !== \strpos($test, '- ') && false === \strpos(\preg_replace('/' . r1 . '/', "", $test), ': ')) {
                 $out .= ':';
             }
         }
@@ -322,7 +322,7 @@ namespace x\y_a_m_l\from {
         }
         $out = [];
         foreach ($blocks as $block) {
-            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . str . '):\s+/', $block, $m)) {
+            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . r1 . '):\s+/', $block, $m)) {
                 $out[v($m[1])] = v(\substr($block, \strlen($m[0])), $array, $lot);
                 continue;
             }
