@@ -7,9 +7,8 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
-    \define(__NAMESPACE__ . "\\str", '"(?>\\.|[^"])*"|\'(?>\'\'|[^\'])*\'');
     // Remove comment(s)
-    function c(string $value): string {
+    function c(string $value, string $str): string {
         $out = "";
         if (false !== \strpos('>|', $value[0]) && \preg_match('/^([>|][+-]?\d*)[ \t]*(#[^\n]*)?(\n(\n|[ \t]+[^\n]*)*)?/', $value, $m)) {
             $out .= $m[1] . ($m[3] ?? "");
@@ -25,7 +24,7 @@ namespace x\y_a_m_l\from {
                 $value = \substr($value, \strlen($v));
                 continue;
             }
-            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . str . '[^\n#]*/', $v, $m)) {
+            if (false !== \strpos('"\'', $v[0]) && \preg_match('/^' . $str . '[^\n#]*/', $v, $m)) {
                 $out .= \trim($m[0]);
                 $value = \substr($value, \strlen($m[0]));
                 continue;
@@ -62,10 +61,10 @@ namespace x\y_a_m_l\from {
         }
         return $content;
     }
-    function r(string $value): string {
+    function r(string $value, string $str): string {
         $out = ($a = '[' === $value[0]) ? '- ' : "";
         $value = \trim(\trim(\substr($value, 1, -1)), ',');
-        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . str . '|[^,:]+)\s*:\s*|' . str . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
+        foreach (\preg_split('/(\[(?>(?R)|[^][])*\]|\{(?>(?R)|[^{}])*\}|(?>' . $str . '|[^,:]+)\s*:\s*|' . $str . '|,)/', $value, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ("" === ($v = \trim($v))) {
                 continue;
             }
@@ -81,14 +80,14 @@ namespace x\y_a_m_l\from {
                 if ($o = ': ' === \substr($out, -2)) {
                     $out = \substr($out, 0, -1) . "\n";
                 }
-                $v = r($v);
+                $v = r($v, $str);
                 $out .= $o ? $v : \strtr($v, [
                     "\n" => "\n  "
                 ]);
                 continue;
             }
             if ('{' === $v[0] && '}' === \substr($v, -1)) {
-                $out .= "\n " . \strtr(r($v), [
+                $out .= "\n " . \strtr(r($v, $str), [
                     "\n" => "\n "
                 ]);
                 continue;
@@ -96,7 +95,7 @@ namespace x\y_a_m_l\from {
             $out .= $v;
             // Fix case for value-less object flow like `{a,b,c}`
             $test = false !== ($v = \strrchr($out, "\n")) ? \substr($v, 1) : $out;
-            if (0 !== \strpos($test, '- ') && false === \strpos(\preg_replace('/' . str . '/', "", $test), ': ')) {
+            if (0 !== \strpos($test, '- ') && false === \strpos(\preg_replace('/' . $str . '/', "", $test), ': ')) {
                 $out .= ':';
             }
         }
@@ -143,15 +142,16 @@ namespace x\y_a_m_l\from {
         if ("" === ($value = \trim($raw = $value ?? ""))) {
             return null;
         }
+        $str = '"(?>\\.|[^"])*"|' . "'(?>''|[^'])*'";
         // Normalize line break(s)
         $value = \strtr($value, [
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
-        if ("" === ($value = \trim(c($value)))) {
+        if ("" === ($value = \trim(c($value, $str)))) {
             return null;
         }
-        if (\array_key_exists($var = \strtolower($value), $vars = [
+        if (\array_key_exists($key = \strtolower($value), $keys = [
             "''" => "",
             '""' => "",
             '+.inf' => \INF,
@@ -167,7 +167,7 @@ namespace x\y_a_m_l\from {
             '{}' => $array ? [] : (object) [],
             '~' => null
         ])) {
-            return $vars[$var];
+            return $keys[$key];
         }
         if ('"' === $value[0] && '"' === \substr($value, -1)) {
             return \stripcslashes(f(\strtr(\substr($value, 1, -1), [
@@ -181,7 +181,7 @@ namespace x\y_a_m_l\from {
         }
         // Fold-style or literal-style value
         if (false !== \strpos('>|', $value[0])) {
-            [$rule, $content] = \array_replace(["", ""], \explode("\n", c(\ltrim($raw)), 2));
+            [$rule, $content] = \array_replace(["", ""], \explode("\n", c(\ltrim($raw), $str), 2));
             $dent = \strspn(\trim($content, "\n"), ' ');
             $content = \substr(\strtr("\n" . $content, [
                 "\n" . \str_repeat(' ', $dent) => "\n"
@@ -222,7 +222,7 @@ namespace x\y_a_m_l\from {
             ]), 1);
         }
         if ('[' === $value[0] && ']' === \substr($value, -1) || '{' === $value[0] && '}' === \substr($value, -1)) {
-            return v(r($value), $array, $lot);
+            return v(r($value, $str), $array, $lot);
         }
         // A tag
         if ('!' === $value[0]) {
@@ -322,7 +322,7 @@ namespace x\y_a_m_l\from {
         }
         $out = [];
         foreach ($blocks as $block) {
-            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . str . '):\s+/', $block, $m)) {
+            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . $str . '):\s+/', $block, $m)) {
                 $out[v($m[1])] = v(\substr($block, \strlen($m[0])), $array, $lot);
                 continue;
             }
