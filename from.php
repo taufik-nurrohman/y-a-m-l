@@ -234,10 +234,14 @@ namespace x\y_a_m_l\from {
             return t($value, $array, $lot, $tag);
         }
         // <https://yaml.org/spec/1.2.2#692-node-anchors>
-        if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)(\s+|$)/', $value, $m)) {
+        if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)([ \n\t]|$)/', $value, $m)) {
             $key = '&' . $m[2];
             if ('&' === $m[1]) {
-                return ($lot[$key] = v(\substr($value, \strlen($m[0])), $array, $lot));
+                $v = \substr($value, \strlen($m[0]));
+                if (($d = \strspn($v, ' ')) > 0) {
+                    $v = \substr(\strtr($v, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
+                }
+                return ($lot[$key] = v($v, $array, $lot));
             }
             return $lot[$key] ?? null;
         }
@@ -314,7 +318,7 @@ namespace x\y_a_m_l\from {
                         $blocks[$block] .= $current;
                         continue;
                     }
-                    $blocks[$block] .= "\n" . $current;
+                    $blocks[$block] .= "\n" . $row;
                     continue;
                 }
             }
@@ -322,11 +326,18 @@ namespace x\y_a_m_l\from {
         }
         $out = [];
         foreach ($blocks as $block) {
-            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . $str . '):\s+/', $block, $m)) {
-                $out[v($m[1])] = v(\substr($block, \strlen($m[0])), $array, $lot);
+            if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . $str . '):[ \n\t]/', $block, $m)) {
+                $v = \substr($block, \strlen($m[0]));
+                if (($d = \strspn($v = \trim($v, "\n"), ' ')) > 0) {
+                    $v = \substr(\strtr($v, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
+                }
+                $out[v($m[1])] = v($v, $array, $lot);
                 continue;
             }
-            [$k, $s, $v] = \array_replace(["", "", ""], \preg_split('/[ \t]*:([ \n\t]\s*|$)/', $block, 2, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY));
+            [$k, $s, $v] = \array_replace(["", "", ""], \preg_split('/[ \t]*:([ \n\t]\n*|$)/', $block, 2, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY));
+            if (($d = \strspn($v, ' ')) > 0) {
+                $v = \substr(\strtr($v, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
+            }
             if ("" === $v) {
                 $out[$k] = null;
                 continue;
