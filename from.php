@@ -43,6 +43,12 @@ namespace x\y_a_m_l\from {
         }
         return $out;
     }
+    function d(string $value, $dent = null) {
+        if (($dent = $dent ?? \strspn($value, ' ')) > 0) {
+            $value = \substr(\strtr($value, ["\n" . \str_repeat(' ', $dent) => "\n"]), $dent);
+        }
+        return $value;
+    }
     // <https://yaml-multiline.info>
     function f(string $value, $dent = true): string {
         $content = "";
@@ -237,11 +243,7 @@ namespace x\y_a_m_l\from {
         if (false !== \strpos('&*', $value[0]) && \preg_match('/^([&*])([^\s,\[\]{}]+)([ \n\t]|$)/', $value, $m)) {
             $key = '&' . $m[2];
             if ('&' === $m[1]) {
-                $v = \substr($value, \strlen($m[0]));
-                if (($d = \strspn($v, ' ')) > 0) {
-                    $v = \substr(\strtr($v, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
-                }
-                return ($lot[$key] = v($v, $array, $lot));
+                return ($lot[$key] = v(d(\substr($value, \strlen($m[0]))), $array, $lot));
             }
             return $lot[$key] ?? null;
         }
@@ -249,13 +251,9 @@ namespace x\y_a_m_l\from {
         if ('-' === $value[0] && \strlen($value) > 2 && false !== \strpos(" \n\t", $value[1])) {
             $out = [];
             foreach (\preg_split('/\n-[ \n\t]/', \substr($value, 2)) as $v) {
-                if (0 === \strpos($v, '- ')) {
-                    $v = \strtr($v, [
-                        "\n  " => "\n"
-                    ]);
-                } else {
-                    $v = \trim($v);
-                }
+                $v = \strtr($v, [
+                    "\n  " => "\n"
+                ]);
                 $out[] = v($v, $array, $lot);
             }
             return $out;
@@ -327,18 +325,11 @@ namespace x\y_a_m_l\from {
         $out = [];
         foreach ($blocks as $block) {
             if (false !== \strpos('"\'', $block[0]) && \preg_match('/^(' . $str . '):[ \n\t]/', $block, $m)) {
-                $v = \substr($block, \strlen($m[0]));
-                if (($d = \strspn($v = \trim($v, "\n"), ' ')) > 0) {
-                    $v = \substr(\strtr($v, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
-                }
-                $out[v($m[1])] = v($v, $array, $lot);
+                $out[v($m[1])] = v(d(\substr($block, \strlen($m[0]))), $array, $lot);
                 continue;
             }
             [$k, $s, $v] = \array_replace(["", "", ""], \preg_split('/[ \t]*:([ \n\t]\n*|$)/', $block, 2, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY));
-            if (($d = \strspn($v, ' ')) > 0) {
-                $v = \substr(\strtr($v, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
-            }
-            if ("" === $v) {
+            if ("" === ($v = d($v))) {
                 $out[$k] = null;
                 continue;
             }
