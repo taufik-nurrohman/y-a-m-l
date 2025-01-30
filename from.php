@@ -43,9 +43,9 @@ namespace x\y_a_m_l\from {
         }
         return $out;
     }
-    function d(string $value, $dent = null) {
-        if (($dent = $dent ?? \strspn($value, ' ')) > 0) {
-            $value = \substr(\strtr($value, ["\n" . \str_repeat(' ', $dent) => "\n"]), $dent);
+    function d(string $value) {
+        if (($d = \strspn($value, ' ')) > 0) {
+            $value = \substr(\strtr($value, ["\n" . \str_repeat(' ', $d) => "\n"]), $d);
         }
         return $value;
     }
