@@ -9,6 +9,5 @@ return [
         'asdf-5' => NAN,
         'asdf-6' => new DateTime
     ],
-    'asdf-2' => 'asdf',
-    'asdf-3' => 'asdf asdf asdf asdf'
+    'asdf-2' => 'asdf asdf asdf asdf'
 ];

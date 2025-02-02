@@ -1,8 +1,10 @@
 -
-  asdf-1: { asdf: 1 }
-  asdf-2: { asdf: 2 }
-  asdf-3: { asdf: 3 }
+  asdf-1: 1
+  asdf-2: 2
+  asdf-3: 3
+  asdf-4: 4
 -
-  asdf-4: { asdf: 4 }
-  asdf-5: { asdf: 5 }
-  asdf-6: { asdf: 6 }
+  asdf-5: 5
+  asdf-6: 6
+  asdf-7: 7
+  asdf-8: 8
