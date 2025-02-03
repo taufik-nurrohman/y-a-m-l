@@ -25,17 +25,17 @@ namespace x\y_a_m_l\from {
         return $v;
     }
     function e(string $v, $array = false, array &$lot = []) {
-        if ('&' === ($v[0] ?? 0)) {
+        if ("" === $v) {
+            return null;
+        }
+        if ('&' === $v[0]) {
             $k = \strtok($v, " \n\t");
             $v = \substr($v, \strlen($k) + 1);
             $lot[$k] = $v = v(d($v), $array, $lot);
             return $v;
         }
-        if ('*' === ($v[0] ?? 0)) {
+        if ('*' === $v[0]) {
             return $lot['&' . \strtok(\substr($v, 1), " \n\t")] ?? null;
-        }
-        if ("" === $v) {
-            return null;
         }
         if (\array_key_exists($k = \strtolower($v), $a = [
             "''" => "",
@@ -55,7 +55,7 @@ namespace x\y_a_m_l\from {
         ])) {
             return $a[$k];
         }
-        if ('"' === ($v[0] ?? 0) && '"' === \substr($v, -1)) {
+        if ('"' === $v[0] && '"' === \substr($v, -1)) {
             if (false !== \strpos($v, "\\'")) {
                 return $v;
             }
@@ -73,7 +73,7 @@ namespace x\y_a_m_l\from {
             }
             return \json_decode($r) ?? $r;
         }
-        if ("'" === ($v[0] ?? 0) && "'" === \substr($v, -1)) {
+        if ("'" === $v[0] && "'" === \substr($v, -1)) {
             if (false !== \strpos($v, "\\'")) {
                 return $v;
             }
@@ -89,30 +89,32 @@ namespace x\y_a_m_l\from {
             }
             return $r;
         }
-        if (\strlen($v) > 2 && '0' === $v[0]) {
-            // Hex
-            if (\preg_match('/^0x[a-f\d]+$/i', $v)) {
-                return \hexdec($v);
-            }
+        if (false !== \strpos('>|', $v[0])) {
+            return $v; // TODO
+        }
+        if (\strlen($n = \strtolower($v)) > 2 && '0' === $n[0]) {
             // Octal
-            if (\preg_match('/^0o?[0-7]+$/i', $v)) {
-                if (false !== \strpos('Oo', $v[1])) {
-                    // PHP < 8.1
-                    $v = \substr($v, 2);
-                }
-                return \octdec($v);
+            if ('o' === $n[1] && \strspn($n, '01234567', 2) === \strlen($n) - 2) {
+                return \octdec(\substr($n, 2));
+            }
+            // Hex
+            if ('x' === $n[1] && \strspn($n, '0123456789abcdef', 2) === \strlen($n) - 2) {
+                return \hexdec($n);
+            }
+            if (\strspn($n, '01234567', 1) === \strlen($n) - 1) {
+                return \octdec($n);
             }
         }
         // <https://yaml.org/spec/1.2.2#10214-floating-point>
-        if (\preg_match('/^-?(0|[1-9][0-9]*)(\.[0-9]*)?([eE][-+]?[0-9]+)$/', $v)) {
-            return (float) $v;
+        if (\strspn($n, '+-.0123456789e') === \strlen($n) && \preg_match('/^-?(?>0|\d+)(?>\.\d*)?(?>[e][-+]?\d+)$/', $n)) {
+            return (float) $n;
         }
         // <https://yaml.org/type/timestamp.html>
-        if (\is_numeric($v[0]) && \preg_match('/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]|[0-9][0-9][0-9][0-9]-[0-9][0-9]?-[0-9][0-9]?([Tt]|[ \t]+)[0-9][0-9]?:[0-9][0-9]:[0-9][0-9](\.[0-9]*)?(([ \t]*)Z|[-+][0-9][0-9]?(:[0-9][0-9])?)?$/', $v)) {
-            return new \DateTime($v);
+        if (\strspn($n, '+-.0123456789:tz' . " \t") === \strlen($n) && \preg_match('/^\d{4,}-\d{1,2}-\d{1,2}(?>(?>[t]|\s+)\d{1,2}:\d{1,2}:\d{1,2}(?>\.\d*)?(?>\s*[z]|[-+]\d{1,2}(?>:\d{2})?)?)?$/', $n)) {
+            return new \DateTime($n);
         }
-        if (\is_numeric($v)) {
-            return 0 + $v;
+        if (\is_numeric($n)) {
+            return 0 + $n;
         }
         $r = "";
         foreach (\explode("\n", $v) as $v) {
@@ -329,8 +331,8 @@ namespace x\y_a_m_l\from {
         echo '<pre style="border:2px solid red">';
         echo htmlspecialchars(json_encode($to, JSON_PRETTY_PRINT));
         echo '</pre>';
-        if (0 === $deep && 1 === \count($to) && !$batch) {
-            return \reset($to);
+        if (!$batch && 0 === $deep && ($count = \count($to)) < 2) {
+            return 1 === $count ? \reset($to) : null;
         }
         return $to;
     }
