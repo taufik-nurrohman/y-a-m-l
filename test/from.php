@@ -11,7 +11,6 @@ ini_set('display_startup_errors', true);
 ini_set('html_errors', 1);
 
 define('D', DIRECTORY_SEPARATOR);
-define('P', "\u{001A}");
 define('PATH', __DIR__);
 
 date_default_timezone_set('Asia/Jakarta');
@@ -98,7 +97,7 @@ foreach ($files as $v) {
     $start = microtime(true);
     $data = x\y_a_m_l\from($raw, false, $test_data);
     $end = microtime(true);
-    $out .= htmlspecialchars('php' === $view ? preg_replace(['/=>\s*\n\s*/', '/\barray\s+\(/'], ['=> ', 'array('], var_export($data, true)) : strtr(json_encode($data, JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT), ['    ' => '  ']));
+    $out .= htmlspecialchars('php' === $view ? var_export($data, true) : strtr(json_encode($data, JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT), ['    ' => '  ']));
     $out .= '</pre>';
     $out .= '</div>';
     $time = round(($end - $start) * 1000, 2);

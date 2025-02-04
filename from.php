@@ -28,14 +28,20 @@ namespace x\y_a_m_l\from {
         if ("" === $v) {
             return null;
         }
-        if ('&' === $v[0]) {
-            $k = \strtok($v, " \n\t");
+        if ('!' === $v[0] && '!' !== ($k = \strtok($v, " \n\t"))) {
+            $v = v(d($w = \trim(\substr($v, \strlen($k) + 1), "\n")), $array, $lot);
+            if ('!!str' === $k && !isset($lot[$k]) && $v instanceof \DateTimeInterface) {
+                return $w;
+            }
+            return t($v, $k, $array, $lot);
+        }
+        if ('&' === $v[0] && '&' !== ($k = \strtok($v, " \n\t"))) {
             $v = \substr($v, \strlen($k) + 1);
             $lot[$k] = $v = v(d($v), $array, $lot);
             return $v;
         }
-        if ('*' === $v[0]) {
-            return $lot['&' . \strtok(\substr($v, 1), " \n\t")] ?? null;
+        if ('*' === $v[0] && '*' !== ($k = \strtok($v, " \n\t"))) {
+            return $lot['&' . \substr($k, 1)] ?? null;
         }
         if (\array_key_exists($k = \strtolower($v), $a = [
             "''" => "",
@@ -89,8 +95,18 @@ namespace x\y_a_m_l\from {
             }
             return $r;
         }
+        if (false !== \strpos('[{', $v[0])) {
+            if (0 === \strpos($v = o($v), "-\0")) {
+                $list = [];
+                foreach (\explode("\n-\0", \substr($v, 2)) as $v) {
+                    $list[] = v(d(\ltrim($v, "\n")), $array, $lot);
+                }
+                return $list;
+            }
+            return v($v, $array, $lot);
+        }
         if (false !== \strpos('>|', $v[0])) {
-            return $v; // TODO
+            return f($v);
         }
         if (\strlen($n = \strtolower($v)) > 2 && '0' === $n[0]) {
             // Octal
@@ -126,6 +142,119 @@ namespace x\y_a_m_l\from {
         }
         return $r;
     }
+    // <https://yaml.org/spec/1.2.2#81-block-scalar-styles>
+    function f(string $v) {
+        if (false === ($n = \strpos($v, "\n"))) {
+            return $v;
+        }
+        $k = \trim(\substr($v, 0, $n));
+        $q = $k[0];
+        $v = \substr($v, $n + 1);
+        echo '<pre style="background:black;color:white">'.htmlspecialchars($k).'</pre>';
+        echo '<pre style="background:blue;color:white">'.htmlspecialchars($v).'</pre>';
+        if ("" === ($k = \substr($k, 1))) {
+            $d = $e = "";
+        } else if (false !== \strpos('+-', $k[0])) {
+            $d = \substr($k, 1, \strspn($k, '0123456789', 1));
+            $e = $k[0];
+        } else {
+            $d = \substr($k, 0, $n = \strspn($k, '0123456789'));
+            $e = \substr($k, $n);
+        }
+        $d = (int) $d;
+        echo '<pre style="background:green;color:white">'.htmlspecialchars($d?:'#').'</pre>';
+        echo '<pre style="background:green;color:white">'.htmlspecialchars($e?:'#').'</pre>';
+        return $v;
+    }
+    function o(string $v) {
+        $d = $r = "";
+        $list = false;
+        while ("" !== (string) $v) {
+            if ($n = \strcspn($v, '"' . "'" . '#,:[]{}')) {
+                $r .= \trim(\substr($v, 0, $n));
+                $v = \trim(\substr($v, $n));
+            }
+            if (('"' === ($c = $v[0] ?? 0) || "'" === $c) && "" !== ($q = q($v))[0]) {
+                $r .= $q[0];
+                $v = \substr($v, \strlen($q[0]));
+                continue;
+            }
+            if ('#' === $c) {
+                if (false === ($x = \strpos($v, "\n"))) {
+                    break;
+                }
+                $v = \trim(\substr($v, $x + 1));
+                continue;
+            }
+            if (',' === $c) {
+                if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
+                    // …
+                } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
+                    // …
+                } else {
+                    if ("" !== $w && "-\0" !== \substr($w, 0, 2)) {
+                        $r .= ': ~';
+                    }
+                }
+                $r .= "\n" . $d . ($list ? "-\0" : "");
+                $v = \trim(\substr($v, 1));
+                continue;
+            }
+            if (':' === $c) {
+                $r .= ': ';
+                $v = \trim(\substr($v, 1));
+                continue;
+            }
+            if ('[' === $c) {
+                $d .= ' ';
+                $list = true;
+                $r .= "\n" . $d . "-\0";
+                $v = \trim(\substr($v, 1));
+                continue;
+            }
+            if (']' === $c) {
+                $d = \substr($d, 0, -1);
+                $list = false;
+                if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
+                    // …
+                } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
+                    // …
+                } else {
+                    if ("" !== $w && "-\0" !== \substr($w, 0, 2)) {
+                        $r .= ': ~';
+                    }
+                }
+                if ("-\0" === $w) {
+                    $r = \rtrim(\substr($r, 0, -2));
+                }
+                $v = \trim(\substr($v, 1));
+                continue;
+            }
+            if ('{' === $c) {
+                $d .= ' ';
+                $r .= "\n" . $d;
+                $v = \trim(\substr($v, 1));
+                continue;
+            }
+            if ('}' === $c) {
+                $d = \substr($d, 0, -1);
+                if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
+                    // …
+                } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
+                    // …
+                } else {
+                    if ("" !== $w && "-\0" !== \substr($w, 0, 2)) {
+                        $r .= ': ~';
+                    }
+                }
+                $v = \trim(\substr($v, 1));
+                continue;
+            }
+            $r .= \trim($v);
+            break;
+        }
+        return d(\trim($r, "\n"));
+    }
     function q(string $v) {
         if ("" === $v || false === \strpos('"' . "'", $v[0])) {
             return ["", $v];
@@ -160,6 +289,43 @@ namespace x\y_a_m_l\from {
             break;
         }
         return $r;
+    }
+    // <https://yaml.org/type>
+    function t($v, $k, $array, $lot) {
+        if (\is_callable($lot[$k] ?? 0)) {
+            return \call_user_func($lot[$k], $v, $array, $lot);
+        }
+        if (0 === \strpos($k, '!!')) {
+            $k = \substr($k, 2);
+            if ('binary' === $k) {
+                return \base64_decode(\preg_replace('/\s+/', "", \trim($v ?? 'AA==')));
+            }
+            if ('bool' === $k) {
+                return (bool) $v;
+            }
+            if ('float' === $k) {
+                return (float) $v;
+            }
+            if ('int' === $k) {
+                return (int) $v;
+            }
+            if ('map' === $k) {
+                return (object) $v;
+            }
+            if ('null' === $k) {
+                return null;
+            }
+            if ('seq' === $k) {
+                return \array_values((array) $v);
+            }
+            if ('str' === $k) {
+                return (string) $v;
+            }
+            if ('timestamp' === $k) {
+                return new \DateTime((string) $v);
+            }
+        }
+        return $v;
     }
     function v(?string $value, $array = false, array &$lot = [], $deep = 0) {
         $from = \strtr(\trim($value ?? "", "\n"), [
@@ -290,12 +456,16 @@ namespace x\y_a_m_l\from {
         $batch = false;
         $to = [];
         foreach ($r as $v) {
-            if ('[' === ($v[0] ?? 0)) {
-                $to[] = $v;
+            if ('!' === ($c = $v[0] ?? 0) && '!' !== \strtok($v, " \n\t")) {
+                $to[] = e($v, $array, $lot);
                 continue;
             }
-            if ('{' === ($v[0] ?? 0)) {
-                $to[] = $v;
+            if ('[' === $c) {
+                $to[] = e($v, $array, $lot);
+                continue;
+            }
+            if ('{' === $c) {
+                $to[] = e($v, $array, $lot);
                 continue;
             }
             if ("-\0" === \substr($v, 0, 2)) {
@@ -306,10 +476,20 @@ namespace x\y_a_m_l\from {
                 $to[] = $list;
                 continue;
             }
+            if (0 !== $c && false !== \strpos('>!', $c)) {
+                $to[] = f($v);
+                continue;
+            }
             if ("" !== ($q = q($v))[0] && ':' === (\trim($q[1])[0] ?? 0)) {
                 $batch = true;
-                $q[1] = \ltrim(\substr($q[1], 1));
-                $to[e($q[0])] = $q[1];
+                $k = e($q[0]);
+                $v = \substr(\ltrim($q[1]), 1);
+                if ("\n" === ($v[0] ?? 0)) {
+                    $to[$k] = v(d(\substr($v, 1)), $array, $lot, $deep + 1);
+                    continue;
+                }
+                $to[$k] = e(d($v), $array, $lot);
+                continue;
                 continue;
             }
             if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
@@ -325,15 +505,15 @@ namespace x\y_a_m_l\from {
             }
             $to[] = e(d($v), $array, $lot);
         }
-        echo '<pre style="border:2px solid green">';
-        echo htmlspecialchars($value);
-        echo '</pre>';
-        echo '<pre style="border:2px solid red">';
-        echo htmlspecialchars(json_encode($to, JSON_PRETTY_PRINT));
-        echo '</pre>';
+        // echo '<pre style="border:2px solid green">';
+        // echo htmlspecialchars($value);
+        // echo '</pre>';
+        // echo '<pre style="border:2px solid red">';
+        // echo htmlspecialchars(json_encode($to, JSON_PRETTY_PRINT));
+        // echo '</pre>';
         if (!$batch && 0 === $deep && ($count = \count($to)) < 2) {
             return 1 === $count ? \reset($to) : null;
         }
-        return $to;
+        return $array ? $to : (\array_is_list($to) ? $to : (object) $to);
     }
 }
