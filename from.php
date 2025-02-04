@@ -346,18 +346,13 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 if ("-\0" === \substr($w, 0, 2)) {
-                    // if ('"' === ($c = \trim(\substr($w, 2))[0] ?? 0) || "'" === $c) {
-                    //     if ("" !== ($q = q(\trim(\substr($r[$i], 2)) . "\n" . $v))[0]) {
-                    //         if ("" !== \trim(c($q[1]))) {
-                    //             $r[$i] .= "\n-\0"; // Broken :(
-                    //             continue;
-                    //         }
-                    //         $r[$i] .= "\n-\0" . $q[0];
-                    //         continue;
-                    //     }
-                    //     $r[$i] .= "\n" . $v;
-                    //     continue;
-                    // }
+                    $last = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n-\0") + 2));
+                    if ('"' === ($c = $last[0] ?? 0) || "'" === $c) {
+                        if ("" === ($q = q($last))[0]) {
+                            $r[$i] .= "\n" . $v;
+                            continue;
+                        }
+                    }
                     if ('-' === \trim(c($v))) {
                         $r[$i] .= "\n-\0";
                         continue;
