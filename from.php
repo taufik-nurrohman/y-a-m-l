@@ -106,7 +106,7 @@ namespace x\y_a_m_l\from {
             return v($v, $array, $lot);
         }
         if (false !== \strpos('>|', $v[0])) {
-            return f($v);
+            return f($v); // TODO
         }
         if (\strlen($n = \strtolower($v)) > 2 && '0' === $n[0]) {
             // Octal
@@ -327,7 +327,7 @@ namespace x\y_a_m_l\from {
         }
         return $v;
     }
-    function v(?string $value, $array = false, array &$lot = [], $deep = 0) {
+    function v(?string $value, $array = false, array &$lot = []) {
         $from = \strtr(\trim($value ?? "", "\n"), [
             "\r\n" => "\n",
             "\r" => "\n"
@@ -342,18 +342,22 @@ namespace x\y_a_m_l\from {
             // Part of a block…
             if ($w = $r[$i] ?? 0) {
                 $w = \rtrim(\strstr($w, "\n", true) ?: $w, " \t");
-                if ('"' === ($w[0] ?? 0) && "" === q($w)[0]) {
-                    $r[$i] .= "\n" . $v;
-                    continue;
-                }
-                if ("'" === ($w[0] ?? 0) && "" === q($w)[0]) {
-                    $r[$i] .= "\n" . $v;
-                    continue;
-                }
                 if ("" === c($v)) {
                     continue;
                 }
                 if ("-\0" === \substr($w, 0, 2)) {
+                    // if ('"' === ($c = \trim(\substr($w, 2))[0] ?? 0) || "'" === $c) {
+                    //     if ("" !== ($q = q(\trim(\substr($r[$i], 2)) . "\n" . $v))[0]) {
+                    //         if ("" !== \trim(c($q[1]))) {
+                    //             $r[$i] .= "\n-\0"; // Broken :(
+                    //             continue;
+                    //         }
+                    //         $r[$i] .= "\n-\0" . $q[0];
+                    //         continue;
+                    //     }
+                    //     $r[$i] .= "\n" . $v;
+                    //     continue;
+                    // }
                     if ('-' === \trim(c($v))) {
                         $r[$i] .= "\n-\0";
                         continue;
@@ -413,6 +417,19 @@ namespace x\y_a_m_l\from {
                     }
                 }
                 if (false !== ($n = \strpos($w, ':')) && false !== \strpos(" \t", \substr($w, $n + 1, 1))) {
+                    if ('"' === ($c = \trim(\substr($w, $n + 2))[0] ?? 0) || "'" === $c) {
+                        if ("" !== ($q = q(\trim(\substr($r[$i], $n + 2)) . "\n" . $v))[0]) {
+                            $k = \substr($r[$i], 0, $n + 2);
+                            if ("" !== \trim(c($q[1]))) {
+                                $r[$i++] = $k; // Broken :(
+                                continue;
+                            }
+                            $r[$i++] = $k . $q[0];
+                            continue;
+                        }
+                        $r[$i] .= "\n" . $v;
+                        continue;
+                    }
                     $r[++$i] = $v;
                     continue;
                 }
@@ -424,14 +441,14 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             if ("" !== ($q = q($v))[0]) {
-                if (':' === (($v = \trim($q[1]))[0] ?? 0)) {
-                    $qq = q(\trim(\substr($v, 1)));
-                    $v = $q[0] . ': ' . \rtrim($qq[0] . c($qq[1]));
+                if (':' === (($q[1] = \ltrim($q[1]))[0] ?? 0) && false !== \strpos(" \n\t", $s = \substr($q[1], 1, 1))) {
+                    $qq = q(\ltrim(\substr($q[1], 1)));
+                    $v = $q[0] . ':' . $s . $qq[0] . c($qq[1]);
                 } else {
-                    $v = \rtrim($q[0] . c($q[1]));
+                    $v = $q[0] . c($q[1]);
                 }
             } else {
-                $v = \rtrim(c($v));
+                $v = c($v);
             }
             if ('-' === $v) {
                 $r[++$i] = "-\0";
@@ -453,39 +470,41 @@ namespace x\y_a_m_l\from {
             }
             $r[++$i] = $v;
         }
-        $batch = false;
         $to = [];
         foreach ($r as $v) {
             if ('!' === ($c = $v[0] ?? 0) && '!' !== \strtok($v, " \n\t")) {
-                $to[] = e($v, $array, $lot);
-                continue;
+                return e($v, $array, $lot);
+            }
+            if ('"' === $c || "'" === $c) {
+                return e($v, $array, $lot);
             }
             if ('[' === $c) {
-                $to[] = e($v, $array, $lot);
-                continue;
+                return e($v, $array, $lot);
             }
             if ('{' === $c) {
-                $to[] = e($v, $array, $lot);
-                continue;
+                return e($v, $array, $lot);
             }
             if ("-\0" === \substr($v, 0, 2)) {
-                $list = [];
+                echo '<pre style="background:black;color:white">';
+                echo $v;
+                echo '</pre>';
+                $r = [];
                 foreach (\explode("\n-\0", \substr($v, 2)) as $vv) {
-                    $list[] = v(d(\ltrim($vv, "\n")), $array, $lot);
+                    $r[] = v(\strtr(d(\ltrim($vv, "\n")), ["\n  " => "\n"]), $array, $lot);
                 }
-                $to[] = $list;
-                continue;
+                echo '<pre style="background:blue;color:white">';
+                echo json_encode($r,JSON_PRETTY_PRINT);
+                echo '</pre>';
+                return $r;
             }
             if (0 !== $c && false !== \strpos('>!', $c)) {
-                $to[] = f($v);
-                continue;
+                return e($v, $array, $lot);
             }
             if ("" !== ($q = q($v))[0] && ':' === (\trim($q[1])[0] ?? 0)) {
-                $batch = true;
                 $k = e($q[0]);
                 $v = \substr(\ltrim($q[1]), 1);
                 if ("\n" === ($v[0] ?? 0)) {
-                    $to[$k] = v(d(\substr($v, 1)), $array, $lot, $deep + 1);
+                    $to[$k] = v(d(\substr($v, 1)), $array, $lot);
                     continue;
                 }
                 $to[$k] = e(d($v), $array, $lot);
@@ -493,17 +512,16 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
-                $batch = true;
                 $k = \trim(\substr($v, 0, $n));
                 $v = \substr($v, $n + 1);
                 if ("\n" === ($v[0] ?? 0)) {
-                    $to[$k] = v(d(\substr($v, 1)), $array, $lot, $deep + 1);
+                    $to[$k] = v(d(\substr($v, 1)), $array, $lot);
                     continue;
                 }
                 $to[$k] = e(d($v), $array, $lot);
                 continue;
             }
-            $to[] = e(d($v), $array, $lot);
+            return e(d($v), $array, $lot);
         }
         // echo '<pre style="border:2px solid green">';
         // echo htmlspecialchars($value);
@@ -511,9 +529,6 @@ namespace x\y_a_m_l\from {
         // echo '<pre style="border:2px solid red">';
         // echo htmlspecialchars(json_encode($to, JSON_PRETTY_PRINT));
         // echo '</pre>';
-        if (!$batch && 0 === $deep && ($count = \count($to)) < 2) {
-            return 1 === $count ? \reset($to) : null;
-        }
-        return $array ? $to : (\array_is_list($to) ? $to : (object) $to);
+        return $array ? $to : (object) $to;
     }
 }
