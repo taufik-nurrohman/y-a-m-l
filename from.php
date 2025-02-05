@@ -79,7 +79,7 @@ namespace x\y_a_m_l\from {
                     $r .= "\\n";
                     continue;
                 }
-                $r .= "\\n" === \substr($r, -2) ? $v : ' ' . $v;
+                $r .= "\\n" === \substr($r, -2) ? $v : ' ' . \ltrim($v);
             }
             return \json_decode($r);
         }
@@ -99,7 +99,7 @@ namespace x\y_a_m_l\from {
                     $r .= "\n";
                     continue;
                 }
-                $r .= "\n" === \substr($r, -1) ? $v : ' ' . $v;
+                $r .= "\n" === \substr($r, -1) ? $v : ' ' . \ltrim($v);
             }
             return $r;
         }
@@ -321,47 +321,38 @@ namespace x\y_a_m_l\from {
         }
         $r = [$c = $v[0], ""];
         $v = \substr($v, 1);
+        // <https://yaml.org/spec/1.2.2#731-double-quoted-style>
         if ('"' === $c) {
-            while ("" !== (string) $v) {
-                if (false !== ($n = \strpos($v, $c))) {
-                    // <https://yaml.org/spec/1.2.2#731-double-quoted-style>
-                    if ("\\" === \substr($v, $n - 1, 1)) {
-                        $r[0] .= \substr($v, 0, $n += 1);
-                        $v = \substr($v, $n);
-                        continue;
-                    }
+            while (false !== ($n = \strpos($v, $c))) {
+                if ("\\" === \substr($v, $n - 1, 1)) {
                     $r[0] .= \substr($v, 0, $n += 1);
-                    $r[1] .= $v = \substr($v, $n);
+                    $v = \substr($v, $n);
                     continue;
                 }
-                if ($c === $r[0]) {
-                    return ["", $c . $v];
-                }
-                break;
+                $r[0] .= \substr($v, 0, $n += 1);
+                $r[1] .= $v = \substr($v, $n);
+            }
+            if ($c === $r[0]) {
+                return ["", $c . $r[1] . $v];
             }
             return $r;
         }
+        // <https://yaml.org/spec/1.2.2#732-single-quoted-style>
         if ("'" === $c) {
-            while ("" !== (string) $v) {
-                if (false !== ($n = \strpos($v, $c))) {
-                    // <https://yaml.org/spec/1.2.2#732-single-quoted-style>
-                    if ($c === \substr($v, $n + 1, 1)) {
-                        $r[0] .= \substr($v, 0, $n += 1);
-                        $v = \substr($v, $n);
-                        continue;
-                    }
-                    $r[0] .= \substr($v, 0, $n += 1);
-                    $r[1] .= $v = \substr($v, $n);
+            while (false !== ($n = \strpos($v, $c))) {
+                if ($c === \substr($v, $n + 1, 1)) {
+                    $r[0] .= \substr($v, 0, $n += 2);
+                    $v = \substr($v, $n);
                     continue;
                 }
-                if ($c === $r[0]) {
-                    return ["", $c . $v];
-                }
-                break;
+                $r[0] .= \substr($v, 0, $n += 1);
+                $r[1] .= $v = \substr($v, $n);
+            }
+            if ($c === $r[0]) {
+                return ["", $c . $r[1] . $v];
             }
             return $r;
         }
-        return ["", $r[0] . $v];
     }
     // <https://yaml.org/type>
     function t($v, $k, $array, $lot) {
