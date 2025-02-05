@@ -53,15 +53,18 @@ Features
 asdf-1: &asdf 1
 asdf-2: *asdf
 asdf-3: *asdf
+asdf-4: *asdf
 ~~~
 
 ~~~ yaml
 asdf-1: &asdf
   a: asdf
-  b: asdf
-  c: asdf
+  s: asdf
+  d: asdf
+  f: asdf
 asdf-2: *asdf
 asdf-3: *asdf
+asdf-4: *asdf
 ~~~
 
 > [!NOTE]
@@ -80,12 +83,13 @@ asdf-3: *asdf
 - asdf
 - asdf
 - asdf
+- asdf
 ~~~
 
 #### Flow
 
 ~~~ yaml
-[ asdf, asdf, asdf ]
+[ asdf, asdf, asdf, asdf ]
 ~~~
 
 ### Object
@@ -94,49 +98,46 @@ asdf-3: *asdf
 
 ~~~ yaml
 a: asdf
-b: asdf
-c: asdf
+s: asdf
+d: asdf
+f: asdf
 ~~~
 
 #### Flow
 
 ~~~ yaml
-{ a: asdf, b: asdf, c: asdf }
+{ a: asdf, s: asdf, d: asdf, f: asdf }
 ~~~
 
 ### Comment
 
 ~~~ yaml
-# This is a comment.
+# asdf
 ~~~
 
 ### Scalar
 
-#### Boolean
+#### Boolean [^1]
 
 ~~~ yaml
-# Case insensitive
 false
 ~~~
 
 ~~~ yaml
-# Case insensitive
 true
 ~~~
 
-#### Constant
+#### Constant [^1]
 
 ~~~ yaml
-# Case insensitive
 .INF
 ~~~
 
 ~~~ yaml
-# Case insensitive
 .NAN
 ~~~
 
-#### Date
+#### Date [^1]
 
 ~~~ yaml
 2023-09-25
@@ -147,12 +148,10 @@ true
 ~~~
 
 ~~~ yaml
-# Case insensitive
 2023-09-25T20:22:42.025Z
 ~~~
 
 ~~~ yaml
-# Case insensitive
 2023-09-25T20:22:42+07:00
 ~~~
 
@@ -168,10 +167,9 @@ true
 .5
 ~~~
 
-##### Float as Exponential Number
+##### Float as Exponential Number [^1]
 
 ~~~ yaml
-# Case insensitive
 1.2e+34
 ~~~
 
@@ -181,17 +179,15 @@ true
 12
 ~~~
 
-##### Integer as Hexadecimal
+##### Integer as Hexadecimal [^1]
 
 ~~~ yaml
-# Case insensitive
 0xC
 ~~~
 
-##### Integer as Octal
+##### Integer as Octal [^1]
 
 ~~~ yaml
-# Case insensitive
 0o14
 ~~~
 
@@ -199,10 +195,9 @@ true
 014
 ~~~
 
-#### Null
+#### Null [^1]
 
 ~~~ yaml
-# Case insensitive
 null
 ~~~
 
@@ -559,3 +554,5 @@ License
 
 This library is licensed under the [MIT License](LICENSE). Please consider
 [donating 💰](https://github.com/sponsors/taufik-nurrohman) if you benefit financially from this library.
+
+[^1]: Case insensitive.

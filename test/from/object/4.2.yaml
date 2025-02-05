@@ -1,5 +1,5 @@
 {
-  False: False,
-  Null: Null,
-  True: True
+  false: false,
+  null: null,
+  true: true
 }

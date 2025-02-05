@@ -63,7 +63,7 @@ namespace x\y_a_m_l\from {
         }
         if ('"' === $v[0] && '"' === \substr($v, -1)) {
             if (false !== \strpos($v, "\\'")) {
-                return $v;
+                return null; // Broken :(
             }
             $r = "";
             foreach (\explode("\n", \strtr($v, [
@@ -71,42 +71,50 @@ namespace x\y_a_m_l\from {
                 "\\\n" => "",
                 "\\\t" => ""
             ])) as $v) {
-                if ("" === ($v = \trim($v))) {
+                if ("" === $r) {
+                    $r .= $v;
+                    continue;
+                }
+                if ("" === $v) {
                     $r .= "\\n";
                     continue;
                 }
-                $r .= "" === $r || "\\n" === \substr($r, -2) ? $v : ' ' . $v;
+                $r .= "\\n" === \substr($r, -2) ? $v : ' ' . $v;
             }
-            return \json_decode($r) ?? $r;
+            return \json_decode($r);
         }
         if ("'" === $v[0] && "'" === \substr($v, -1)) {
             if (false !== \strpos($v, "\\'")) {
-                return $v;
+                return null; // Broken :(
             }
             $r = "";
             foreach (\explode("\n", \strtr(\substr($v, 1, -1), [
                 "''" => "'"
             ])) as $v) {
-                if ("" === ($v = \trim($v))) {
+                if ("" === $r) {
+                    $r .= $v;
+                    continue;
+                }
+                if ("" === $v) {
                     $r .= "\n";
                     continue;
                 }
-                $r .= "" === $r || "\n" === \substr($r, -1) ? $v : ' ' . $v;
+                $r .= "\n" === \substr($r, -1) ? $v : ' ' . $v;
             }
             return $r;
         }
         if (false !== \strpos('[{', $v[0])) {
             if (0 === \strpos($v = o($v), "-\0")) {
-                $list = [];
+                $r = [];
                 foreach (\explode("\n-\0", \substr($v, 2)) as $v) {
-                    $list[] = v(d(\ltrim($v, "\n")), $array, $lot);
+                    $r[] = v(d(\ltrim($v, "\n")), $array, $lot);
                 }
-                return $list;
+                return $r;
             }
             return v($v, $array, $lot);
         }
         if (false !== \strpos('>|', $v[0])) {
-            return f($v); // TODO
+            return f($v);
         }
         if (\strlen($n = \strtolower($v)) > 2 && '0' === $n[0]) {
             // Octal
@@ -150,8 +158,6 @@ namespace x\y_a_m_l\from {
         $k = \trim(\substr($v, 0, $n));
         $q = $k[0];
         $v = \substr($v, $n + 1);
-        echo '<pre style="background:black;color:white">'.htmlspecialchars($k).'</pre>';
-        echo '<pre style="background:blue;color:white">'.htmlspecialchars($v).'</pre>';
         if ("" === ($k = \substr($k, 1))) {
             $d = $e = "";
         } else if (false !== \strpos('+-', $k[0])) {
@@ -162,9 +168,63 @@ namespace x\y_a_m_l\from {
             $e = \substr($k, $n);
         }
         $d = (int) $d;
-        echo '<pre style="background:green;color:white">'.htmlspecialchars($d?:'#').'</pre>';
-        echo '<pre style="background:green;color:white">'.htmlspecialchars($e?:'#').'</pre>';
-        return $v;
+        $dd = 0;
+        $v = \explode("\n", $v);
+        foreach ($v as $vv) {
+            if ("" !== \trim($vv) && ($ddd = \strspn($vv, ' '))) {
+                if ($d > 0 && $ddd < $d) {
+                    return null; // Broken :(
+                }
+                // <https://yaml.org/spec/1.2.2#example-invalid-block-scalar-indentation-indicators>
+                if (0 !== $dd && $ddd < $dd) {
+                    return null; // Broken :(
+                }
+                if (0 === $dd) {
+                    $dd = $ddd;
+                }
+            }
+        }
+        if (0 === $d) {
+            $d = $dd;
+        }
+        $r = "";
+        if ('>' === $q) {
+            foreach ($v as $vv) {
+                if ("" === \trim($vv)) {
+                    $r .= "\n";
+                    continue;
+                }
+                if (($dd = \strspn($vv, ' ')) >= $d) {
+                    $vv = \substr($vv, $d);
+                }
+                if (' ' === ($vv[0] ?? 0)) {
+                    $r .= "\n" . $vv;
+                    continue;
+                }
+                if ("\n" === \substr($r, -1)) {
+                    $r .= $vv;
+                    continue;
+                }
+                if (\strspn(\substr(\strrchr($r, "\n"), 1), ' ')) {
+                    $r .= "\n" . $vv;
+                    continue;
+                }
+                $r .= ' ' . $vv;
+            }
+        } else {
+            foreach ($v as $vv) {
+                if ("" === \trim($vv)) {
+                    $r .= "\n";
+                    continue;
+                }
+                if (($dd = \strspn($vv, ' ')) >= $d) {
+                    $vv = \substr($vv, $d);
+                }
+                $r .= "\n" . $vv;
+            }
+        }
+        $r = \substr($r, 1);
+        return '+' === $e ? $r : ('-' === $e ? \rtrim($r) : ("\n" === \substr($r, -1) ? \rtrim($r) . "\n" : $r));
     }
     function o(string $v) {
         $d = $r = "";
@@ -259,36 +319,49 @@ namespace x\y_a_m_l\from {
         if ("" === $v || false === \strpos('"' . "'", $v[0])) {
             return ["", $v];
         }
-        $r = [$v[0], ""];
+        $r = [$c = $v[0], ""];
         $v = \substr($v, 1);
-        while ("" !== (string) $v) {
-            $n = \strcspn($v, '"' . "'");
-            // <https://yaml.org/spec/1.2.2#731-double-quoted-style>
-            if ('"' === ($c = \substr($v, $n, 1))) {
-                if ("\\" === \substr($v, $n - 1, 1)) {
-                    $r[0] .= \substr($v, 0, $n + 1);
-                    $v = \substr($v, $n + 1);
-                    continue;
-                }
-                $r[0] .= \substr($v, 0, $n += 1);
-                $r[1] = \substr($v, $n);
-                break;
-            }
-            // <https://yaml.org/spec/1.2.2#732-single-quoted-style>
-            if ("'" === $c) {
-                if ($c === \substr($v, $n + 1, 1)) {
+        if ('"' === $c) {
+            while ("" !== (string) $v) {
+                if (false !== ($n = \strpos($v, $c))) {
+                    // <https://yaml.org/spec/1.2.2#731-double-quoted-style>
+                    if ("\\" === \substr($v, $n - 1, 1)) {
+                        $r[0] .= \substr($v, 0, $n += 1);
+                        $v = \substr($v, $n);
+                        continue;
+                    }
                     $r[0] .= \substr($v, 0, $n += 1);
-                    $v = \substr($v, $n);
+                    $r[1] .= $v = \substr($v, $n);
                     continue;
                 }
-                $r[0] .= \substr($v, 0, $n += 1);
-                $r[1] = \substr($v, $n);
+                if ($c === $r[0]) {
+                    return ["", $c . $v];
+                }
                 break;
             }
-            $r = ["", $r[0] . $v];
-            break;
+            return $r;
         }
-        return $r;
+        if ("'" === $c) {
+            while ("" !== (string) $v) {
+                if (false !== ($n = \strpos($v, $c))) {
+                    // <https://yaml.org/spec/1.2.2#732-single-quoted-style>
+                    if ($c === \substr($v, $n + 1, 1)) {
+                        $r[0] .= \substr($v, 0, $n += 1);
+                        $v = \substr($v, $n);
+                        continue;
+                    }
+                    $r[0] .= \substr($v, 0, $n += 1);
+                    $r[1] .= $v = \substr($v, $n);
+                    continue;
+                }
+                if ($c === $r[0]) {
+                    return ["", $c . $v];
+                }
+                break;
+            }
+            return $r;
+        }
+        return ["", $r[0] . $v];
     }
     // <https://yaml.org/type>
     function t($v, $k, $array, $lot) {
@@ -342,16 +415,26 @@ namespace x\y_a_m_l\from {
             // Part of a block…
             if ($w = $r[$i] ?? 0) {
                 $w = \rtrim(\strstr($w, "\n", true) ?: $w, " \t");
+                if (false !== \strpos('>|', \trim(\rtrim(c($w), '+-0123456789')))) {
+                    if ($d || "" === $v) {
+                        $r[$i] .= "\n" . $v;
+                        continue;
+                    }
+                    if ('#' === $v[0]) {
+                        $r[$i] .= "\n";
+                        continue;
+                    }
+                    $r[++$i] = $v;
+                    continue;
+                }
                 if ("" === c($v)) {
                     continue;
                 }
                 if ("-\0" === \substr($w, 0, 2)) {
-                    $last = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n-\0") + 2));
-                    if ('"' === ($c = $last[0] ?? 0) || "'" === $c) {
-                        if ("" === ($q = q($last))[0]) {
-                            $r[$i] .= "\n" . $v;
-                            continue;
-                        }
+                    $last = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n-\0") + 2), " \n\t");
+                    if (('"' === ($c = $last[0] ?? 0) || "'" === $c) && "" === q($last)[0]) {
+                        $r[$i] .= "\n" . $v;
+                        continue;
                     }
                     if ('-' === \trim(c($v))) {
                         $r[$i] .= "\n-\0";
@@ -365,14 +448,6 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n" . $v;
                         continue;
                     }
-                }
-                if (false !== \strpos('>|', \trim(\rtrim(\rtrim($w, '0123456789'), '+-')))) {
-                    if ($d) {
-                        $r[$i] .= "\n" . $v;
-                        continue;
-                    }
-                    $r[++$i] = $v;
-                    continue;
                 }
                 if ("" !== ($q = q($w))[0] && ':' === (\trim($q[1])[0] ?? 0)) {
                     if ($d) {
@@ -412,18 +487,19 @@ namespace x\y_a_m_l\from {
                     }
                 }
                 if (false !== ($n = \strpos($w, ':')) && false !== \strpos(" \t", \substr($w, $n + 1, 1))) {
-                    if ('"' === ($c = \trim(\substr($w, $n + 2))[0] ?? 0) || "'" === $c) {
-                        if ("" !== ($q = q(\trim(\substr($r[$i], $n + 2)) . "\n" . $v))[0]) {
-                            $k = \substr($r[$i], 0, $n + 2);
-                            if ("" !== \trim(c($q[1]))) {
-                                $r[$i++] = $k; // Broken :(
-                                continue;
-                            }
-                            $r[$i++] = $k . $q[0];
-                            continue;
-                        }
+                    if (('"' === ($c = \trim(\substr($w, $n + 2))[0] ?? 0) || "'" === $c) && "" === q(\trim(\substr($r[$i], $n + 2)))[0]) {
                         $r[$i] .= "\n" . $v;
                         continue;
+                    }
+                    if (false !== \strpos('>|', \trim(\rtrim(c(\substr($w, $n + 2)), '+-0123456789')))) {
+                        if ($d || "" === $v) {
+                            $r[$i] .= "\n" . $v;
+                            continue;
+                        }
+                        if ('#' === $v[0]) {
+                            $r[$i] .= "\n";
+                            continue;
+                        }
                     }
                     $r[++$i] = $v;
                     continue;
@@ -467,10 +543,37 @@ namespace x\y_a_m_l\from {
         }
         $to = [];
         foreach ($r as $v) {
-            if ('!' === ($c = $v[0] ?? 0) && '!' !== \strtok($v, " \n\t")) {
+            if (0 !== ($c = $v[0] ?? 0) && false !== \strpos('!&*', $c) && $c !== \strtok($v, " \n\t")) {
                 return e($v, $array, $lot);
             }
             if ('"' === $c || "'" === $c) {
+                if ("" === ($q = q($v))[0]) {
+                    return null; // Broken :(
+                }
+                if ('#' === ($q[1][0] ?? 0)) {
+                    return null; // Broken :(
+                }
+                if ("" !== \trim(c($q[1]))) {
+                    if (':' === (($q[1] = \ltrim($q[1]))[0] ?? 0) && false !== \strpos(" \n\t", \substr($q[1], 1, 1))) {
+                        $k = e($q[0]);
+                        $v = \substr($q[1], 1);
+                        if ("\n" === ($v[0] ?? 0)) {
+                            $to[$k] = v(d(\substr($v, 1)), $array, $lot);
+                            continue;
+                        }
+                        if ("" !== ($q = q($v = d(\substr($v, 1))))[0]) {
+                            if ('#' === ($q[1][0] ?? 0) || "" !== \trim(c($q[1]))) {
+                                $to[$k] = null; // Broken :(
+                                continue;
+                            }
+                            $to[$k] = e($q[0], $array, $lot);
+                            continue;
+                        }
+                        $to[$k] = e($v, $array, $lot);
+                        continue;
+                    }
+                    return null; // Broken :(
+                }
                 return e($v, $array, $lot);
             }
             if ('[' === $c) {
@@ -480,31 +583,22 @@ namespace x\y_a_m_l\from {
                 return e($v, $array, $lot);
             }
             if ("-\0" === \substr($v, 0, 2)) {
-                echo '<pre style="background:black;color:white">';
-                echo $v;
-                echo '</pre>';
                 $r = [];
                 foreach (\explode("\n-\0", \substr($v, 2)) as $vv) {
-                    $r[] = v(\strtr(d(\ltrim($vv, "\n")), ["\n  " => "\n"]), $array, $lot);
+                    if ("" !== ($q = q($vv = \strtr(d(\ltrim($vv, "\n")), ["\n  " => "\n"])))[0]) {
+                        if ('#' === ($q[1][0] ?? 0) || "" !== \trim(c($q[1]))) {
+                            $r[] = null; // Broken :(
+                            continue;
+                        }
+                        $r[] = e($q[0], $array, $lot);
+                        continue;
+                    }
+                    $r[] = v($vv, $array, $lot);
                 }
-                echo '<pre style="background:blue;color:white">';
-                echo json_encode($r,JSON_PRETTY_PRINT);
-                echo '</pre>';
                 return $r;
             }
             if (0 !== $c && false !== \strpos('>!', $c)) {
                 return e($v, $array, $lot);
-            }
-            if ("" !== ($q = q($v))[0] && ':' === (\trim($q[1])[0] ?? 0)) {
-                $k = e($q[0]);
-                $v = \substr(\ltrim($q[1]), 1);
-                if ("\n" === ($v[0] ?? 0)) {
-                    $to[$k] = v(d(\substr($v, 1)), $array, $lot);
-                    continue;
-                }
-                $to[$k] = e(d($v), $array, $lot);
-                continue;
-                continue;
             }
             if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
                 $k = \trim(\substr($v, 0, $n));
@@ -513,7 +607,15 @@ namespace x\y_a_m_l\from {
                     $to[$k] = v(d(\substr($v, 1)), $array, $lot);
                     continue;
                 }
-                $to[$k] = e(d($v), $array, $lot);
+                if ("" !== ($q = q($v = d(\substr($v, 1))))[0]) {
+                    if ('#' === ($q[1][0] ?? 0) || "" !== \trim(c($q[1]))) {
+                        $to[$k] = null; // Broken :(
+                        continue;
+                    }
+                    $to[$k] = e($q[0], $array, $lot);
+                    continue;
+                }
+                $to[$k] = e($v, $array, $lot);
                 continue;
             }
             return e(d($v), $array, $lot);

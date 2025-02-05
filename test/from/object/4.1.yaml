@@ -4,7 +4,7 @@
   a,
   s:,
   d: ~,
-  False: asdf,
-  Null: asdf,
-  True: asdf
+  false: asdf,
+  null: asdf,
+  true: asdf
 }
