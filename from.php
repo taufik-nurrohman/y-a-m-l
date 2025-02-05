@@ -617,6 +617,6 @@ namespace x\y_a_m_l\from {
         // echo '<pre style="border:2px solid red">';
         // echo htmlspecialchars(json_encode($to, JSON_PRETTY_PRINT));
         // echo '</pre>';
-        return $array ? $to : (object) $to;
+        return $to ? ($array ? $to : (object) $to) : null;
     }
 }
