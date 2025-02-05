@@ -117,7 +117,7 @@ f: asdf
 
 ### Scalar
 
-#### Boolean [^1]
+#### Boolean [^2]
 
 ~~~ yaml
 false
@@ -127,7 +127,7 @@ false
 true
 ~~~
 
-#### Constant [^1]
+#### Constant [^2]
 
 ~~~ yaml
 .INF
@@ -137,7 +137,7 @@ true
 .NAN
 ~~~
 
-#### Date [^1]
+#### Date [^2]
 
 ~~~ yaml
 2023-09-25
@@ -167,7 +167,7 @@ true
 .5
 ~~~
 
-##### Float as Exponential Number [^1]
+##### Float as Exponential Number [^2]
 
 ~~~ yaml
 1.2e+34
@@ -179,13 +179,13 @@ true
 12
 ~~~
 
-##### Integer as Hexadecimal [^1]
+##### Integer as Hexadecimal [^2]
 
 ~~~ yaml
 0xC
 ~~~
 
-##### Integer as Octal [^1]
+##### Integer as Octal [^2]
 
 ~~~ yaml
 0o14
@@ -195,7 +195,7 @@ true
 014
 ~~~
 
-#### Null [^1]
+#### Null [^2]
 
 ~~~ yaml
 null
@@ -381,6 +381,8 @@ $value = from_yaml($value, false, $lot);
 var_dump($lot, $value);
 ~~~
 
+[^2]: Case insensitive.
+
 Usage
 -----
 
@@ -554,5 +556,3 @@ License
 
 This library is licensed under the [MIT License](LICENSE). Please consider
 [donating 💰](https://github.com/sponsors/taufik-nurrohman) if you benefit financially from this library.
-
-[^1]: Case insensitive.
