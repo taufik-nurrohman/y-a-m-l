@@ -33,7 +33,8 @@ $out .= '<title>';
 $out .= 'Data to YAML';
 $out .= '</title>';
 $out .= '<style>';
-$out .= <<<CSS
+if (!empty($_GET['c'])) {
+    $out .= <<<CSS
 .char-end,
 .char-enter,
 .char-space,
@@ -78,6 +79,7 @@ $out .= <<<CSS
   top: 0;
 }
 CSS;
+}
 $out .= '</style>';
 $out .= '</head>';
 $out .= '<body>';
@@ -104,6 +106,22 @@ foreach (glob(__DIR__ . D . 'to' . D . '*', GLOB_ONLYDIR) as $v) {
     $out .= htmlspecialchars($n);
     $out .= '</button>';
 }
+$out .= '</fieldset>';
+
+$out .= '<fieldset>';
+$out .= '<legend>';
+$out .= 'Preview';
+$out .= '</legend>';
+$out .= '<label>';
+$out .= '<input' . (empty($_GET['c']) ? "" : ' checked') . ' name="c" type="checkbox" value="1">';
+$out .= ' ';
+$out .= 'Show control characters';
+$out .= '</label>';
+$out .= '<br>';
+$out .= '<br>';
+$out .= '<button name="test" type="submit" value="' . $test . '">';
+$out .= 'Update';
+$out .= '</button>';
 $out .= '</fieldset>';
 
 $out .= '</form>';

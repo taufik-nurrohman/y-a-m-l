@@ -85,7 +85,8 @@ $out .= '<title>';
 $out .= 'YAML to Data';
 $out .= '</title>';
 $out .= '<style>';
-$out .= <<<CSS
+if (!empty($_GET['c'])) {
+    $out .= <<<CSS
 .char-end,
 .char-enter,
 .char-space,
@@ -130,6 +131,7 @@ $out .= <<<CSS
   top: 0;
 }
 CSS;
+}
 $out .= '</style>';
 $out .= '</head>';
 $out .= '<body>';
@@ -162,6 +164,13 @@ $out .= '<fieldset>';
 $out .= '<legend>';
 $out .= 'Preview';
 $out .= '</legend>';
+$out .= '<label>';
+$out .= '<input' . (empty($_GET['c']) ? "" : ' checked') . ' name="c" type="checkbox" value="1">';
+$out .= ' ';
+$out .= 'Show control characters';
+$out .= '</label>';
+$out .= '<br>';
+$out .= '<br>';
 $out .= '<select name="view">';
 $out .= '<option' . ('json' === $view ? ' selected' : "") . ' value="json">JSON</option>';
 $out .= '<option' . ('php' === $view ? ' selected' : "") . ' value="php">PHP</option>';
@@ -192,7 +201,12 @@ foreach ($files as $v) {
         $start = microtime(true);
         $content = x\y_a_m_l\from($raw);
         $end = microtime(true);
-        $out .= htmlspecialchars(strtr(json_encode($content, JSON_PRETTY_PRINT), ['    ' => '  ']));
+        $content = strtr(json_encode($content, JSON_PRETTY_PRINT), ['    ' => '  ']);
+        $out .= strtr(htmlspecialchars($content), [
+            "\n" => '<span class="char-enter">' . "\n" . '</span>',
+            "\t" => '<span class="char-tab">' . "\t" . '</span>',
+            ' ' => '<span class="char-space"> </span>'
+        ]);
         $out .= '<span class="char-end">' . "\n" . '</span></pre>';
     } else if ('php' === $view) {
         $out .= '<div style="flex:1;min-width:0;">';
@@ -204,8 +218,9 @@ foreach ($files as $v) {
                 return is_string($v) && defined($v) ? constant($v) : null;
             }
         ];
-        $content = '<?' . "php\n\nreturn " . php_export(x\y_a_m_l\from($raw, false, $lot)) . ';';
+        $content = x\y_a_m_l\from($raw, false, $lot);
         $end = microtime(true);
+        $content = '<?' . "php\n\nreturn " . php_export($content) . ';';
         $a .= strtr(htmlspecialchars($content), [
             "\n" => '<span class="char-enter">' . "\n" . '</span>',
             "\t" => '<span class="char-tab">' . "\t" . '</span>',
