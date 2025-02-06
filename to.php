@@ -163,6 +163,7 @@ namespace x\y_a_m_l\to {
             return '""';
         }
         if (
+            (false !== ($n = \strpos($value, '#')) && false !== \strpos(" \n\t", \substr($value, $n - 1, 1))) ||
             ' ' === $value[0] ||
             ' ' === \substr($value, -1) ||
             ':' === \substr($value, -1) ||
@@ -171,7 +172,7 @@ namespace x\y_a_m_l\to {
             false !== \strpos($value, ': ') ||
             false !== \strpos('!"#&\'*+-.0123456789?', $value[0]) ||
             false !== \strpos(',false,null,true,~,', ',' . \strtolower($value) . ',') ||
-            \strlen($value) !== \strcspn($value, ',<=>[\\]`{|}')
+            \strlen($value) !== \strcspn($value, '<=>[\\]`{|}')
         ) {
             return "'" . \strtr($value, [
                 "'" => "''"

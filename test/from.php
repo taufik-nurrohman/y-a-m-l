@@ -56,7 +56,7 @@ function php_export($value, $d = "") {
     }
     if (is_array($value)) {
         $out = [];
-        if ($is_list = array_is_list($value)) {
+        if (array_is_list($value)) {
             foreach ($value as $k => $v) {
                 $out[] = php_export($v, $d . '  ');
             }
@@ -86,10 +86,30 @@ $out .= 'YAML to Data';
 $out .= '</title>';
 $out .= '<style>';
 $out .= <<<CSS
+.char-end,
+.char-enter,
 .char-space,
 .char-tab {
   opacity: 0.5;
   position: relative;
+}
+.char-end::before {
+  bottom: 0;
+  content: '␄';
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
+}
+.char-enter::before {
+  bottom: 0;
+  content: '␤';
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
 }
 .char-space::before {
   bottom: 0;
@@ -158,21 +178,22 @@ $error_count = 0;
 foreach ($files as $v) {
     $error = false;
     $raw = file_get_contents($v);
-    $out .= '<h1 id="' . ($n = basename(dirname($v)) . ':' . basename($v, '.md')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
+    $out .= '<h1 id="' . ($n = basename(dirname($v)) . ':' . basename($v, '.yaml')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
     $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $out .= strtr(htmlspecialchars($raw), [
+        "\n" => '<span class="char-enter">' . "\n" . '</span>',
         "\t" => '<span class="char-tab">' . "\t" . '</span>',
         ' ' => '<span class="char-space"> </span>'
     ]);
-    $out .= '</pre>';
+    $out .= '<span class="char-end">' . "\n" . '</span></pre>';
     if ('json' === $view) {
         $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
         $start = microtime(true);
         $content = x\y_a_m_l\from($raw);
         $end = microtime(true);
         $out .= htmlspecialchars(strtr(json_encode($content, JSON_PRETTY_PRINT), ['    ' => '  ']));
-        $out .= '</pre>';
+        $out .= '<span class="char-end">' . "\n" . '</span></pre>';
     } else if ('php' === $view) {
         $out .= '<div style="flex:1;min-width:0;">';
         $a = $b = "";
@@ -186,10 +207,11 @@ foreach ($files as $v) {
         $content = '<?' . "php\n\nreturn " . php_export(x\y_a_m_l\from($raw, false, $lot)) . ';';
         $end = microtime(true);
         $a .= strtr(htmlspecialchars($content), [
+            "\n" => '<span class="char-enter">' . "\n" . '</span>',
             "\t" => '<span class="char-tab">' . "\t" . '</span>',
             ' ' => '<span class="char-space"> </span>'
         ]);
-        $a .= '</pre>';
+        $a .= '<span class="char-end">' . "\n" . '</span></pre>';
         if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.php')) {
             $test = strtr(file_get_contents($f), [
                 "\r\n" => "\n",
@@ -198,10 +220,11 @@ foreach ($files as $v) {
             if ($error = $content !== $test) {
                 $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
                 $b .= strtr(htmlspecialchars($test), [
+                    "\n" => '<span class="char-enter">' . "\n" . '</span>',
                     "\t" => '<span class="char-tab">' . "\t" . '</span>',
                     ' ' => '<span class="char-space"> </span>'
                 ]);
-                $b .= '</pre>';
+                $b .= '<span class="char-end">' . "\n" . '</span></pre>';
             }
         } else {
             // file_put_contents($f, $content);

@@ -1,1 +1,3 @@
-<?php return '“I ❤ U”';
+<?php
+
+return '“I ❤ U”';

@@ -1,1 +1,3 @@
-<?php return new DateTime;
+<?php
+
+return new DateTime;

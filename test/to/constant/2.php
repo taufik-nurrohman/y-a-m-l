@@ -1,1 +1,3 @@
-<?php return NAN;
+<?php
+
+return NAN;

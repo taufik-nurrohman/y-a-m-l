@@ -1,1 +1,3 @@
-<?php return 'asdf \'asdf\' "asdf" asdf';
+<?php
+
+return 'asdf \'asdf\' "asdf" asdf';

@@ -1,1 +1,3 @@
-<?php return false;
+<?php
+
+return false;

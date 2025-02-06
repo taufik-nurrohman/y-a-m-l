@@ -1,1 +1,3 @@
-<?php return INF;
+<?php
+
+return INF;

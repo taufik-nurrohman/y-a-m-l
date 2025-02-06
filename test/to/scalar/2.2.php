@@ -1,1 +1,3 @@
-<?php return 0xC;
+<?php
+
+return 0xC;

@@ -1,1 +1,7 @@
-<?php return ['asdf', 'asdf', 'asdf'];
+<?php
+
+return array(
+  'asdf',
+  'asdf',
+  'asdf'
+);

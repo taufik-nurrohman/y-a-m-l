@@ -1,1 +1,3 @@
-<?php return date('c');
+<?php
+
+return date('c');
