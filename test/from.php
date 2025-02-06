@@ -11,10 +11,7 @@ ini_set('display_startup_errors', true);
 ini_set('html_errors', 1);
 
 define('D', DIRECTORY_SEPARATOR);
-define('P', "\u{001A}");
 define('PATH', __DIR__);
-
-date_default_timezone_set('Asia/Jakarta');
 
 require __DIR__ . D . '..' . D . 'from.php';
 
@@ -22,11 +19,63 @@ $test = basename($_GET['test'] ?? 'scalar');
 $view = $_GET['view'] ?? 'php';
 
 $files = glob(__DIR__ . D . 'from' . D . $test . D . '*.yaml', GLOB_NOSORT);
+
 usort($files, static function ($a, $b) {
     $a = dirname($a) . D . basename($a, '.yaml');
     $b = dirname($b) . D . basename($b, '.yaml');
     return strnatcmp($a, $b);
 });
+
+// <https://github.com/mecha-cms/mecha/blob/v3.2.0/engine/f.php#L20-L35>
+if (!function_exists('array_is_list')) {
+    // PHP < 8.1
+    function array_is_list(array $array): bool {
+        if (!$array) {
+            return true;
+        }
+        $key = -1;
+        foreach ($array as $k => $v) {
+            if ($k !== ++$key) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+// <https://github.com/mecha-cms/mecha/blob/v3.2.0/engine/f.php#L1606-L1671>
+function php_export($value, $d = "") {
+    if (is_object($value)) {
+        if ($value instanceof stdClass) {
+            return '(object) ' . php_export((array) $value, $d);
+        }
+        return strtr(var_export($value, true), [
+            "\n " . $d => "\n" . $d,
+            ",\n" . $d . ')' => "\n" . $d . ')'
+        ]);
+    }
+    if (is_array($value)) {
+        $out = [];
+        if (array_is_list($value)) {
+            foreach ($value as $k => $v) {
+                $out[] = php_export($v, $d . '  ');
+            }
+        } else {
+            foreach ($value as $k => $v) {
+                $out[] = php_export($k) . ' => ' . php_export($v, $d . '  ');
+            }
+        }
+        return "array(\n  " . $d . implode(",\n" . $d . '  ', $out) . "\n" . $d . ')';
+    }
+    $value = var_export($value, true);
+    if ("''" === $value) {
+        return '""';
+    }
+    if ('NULL' === $value) {
+        return 'null';
+    }
+    return $value;
+}
 
 $out = '<!DOCTYPE html>';
 $out .= '<html dir="ltr">';
@@ -35,6 +84,55 @@ $out .= '<meta charset="utf-8">';
 $out .= '<title>';
 $out .= 'YAML to Data';
 $out .= '</title>';
+$out .= '<style>';
+if (!empty($_GET['c'])) {
+    $out .= <<<CSS
+.char-end,
+.char-enter,
+.char-space,
+.char-tab {
+  opacity: 0.5;
+  position: relative;
+}
+.char-end::before {
+  bottom: 0;
+  content: '␄';
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
+}
+.char-enter::before {
+  bottom: 0;
+  content: '␤';
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
+}
+.char-space::before {
+  bottom: 0;
+  content: '·';
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
+}
+.char-tab::before {
+  bottom: 0;
+  content: '→';
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
+}
+CSS;
+}
+$out .= '</style>';
 $out .= '</head>';
 $out .= '<body>';
 
@@ -66,6 +164,13 @@ $out .= '<fieldset>';
 $out .= '<legend>';
 $out .= 'Preview';
 $out .= '</legend>';
+$out .= '<label>';
+$out .= '<input' . (empty($_GET['c']) ? "" : ' checked') . ' name="c" type="checkbox" value="1">';
+$out .= ' ';
+$out .= 'Show control characters';
+$out .= '</label>';
+$out .= '<br>';
+$out .= '<br>';
 $out .= '<select name="view">';
 $out .= '<option' . ('json' === $view ? ' selected' : "") . ' value="json">JSON</option>';
 $out .= '<option' . ('php' === $view ? ' selected' : "") . ' value="php">PHP</option>';
@@ -78,34 +183,84 @@ $out .= '</fieldset>';
 
 $out .= '</form>';
 
+$error_count = 0;
 foreach ($files as $v) {
+    $error = false;
     $raw = file_get_contents($v);
     $out .= '<h1 id="' . ($n = basename(dirname($v)) . ':' . basename($v, '.yaml')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
     $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
-    $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-    $out .= htmlspecialchars($raw);
-    $out .= '</pre>';
-    $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-    $test_data = [
-        // Custom tag
-        '!php/const' => static function ($value) {
-            if (is_string($value) && defined($value)) {
-                return constant($value);
+    $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+    $out .= strtr(htmlspecialchars($raw), [
+        "\n" => '<span class="char-enter">' . "\n" . '</span>',
+        "\t" => '<span class="char-tab">' . "\t" . '</span>',
+        ' ' => '<span class="char-space"> </span>'
+    ]);
+    $out .= '<span class="char-end">' . "\n" . '</span></pre>';
+    if ('json' === $view) {
+        $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+        $start = microtime(true);
+        $content = x\y_a_m_l\from($raw);
+        $end = microtime(true);
+        $content = strtr(json_encode($content, JSON_PRETTY_PRINT), ['    ' => '  ']);
+        $out .= strtr(htmlspecialchars($content), [
+            "\n" => '<span class="char-enter">' . "\n" . '</span>',
+            "\t" => '<span class="char-tab">' . "\t" . '</span>',
+            ' ' => '<span class="char-space"> </span>'
+        ]);
+        $out .= '<span class="char-end">' . "\n" . '</span></pre>';
+    } else if ('php' === $view) {
+        $out .= '<div style="flex:1;min-width:0;">';
+        $a = $b = "";
+        $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+        $start = microtime(true);
+        $lot = [
+            '!php/const' => function ($v) {
+                return is_string($v) && defined($v) ? constant($v) : null;
             }
-            return null;
+        ];
+        $content = x\y_a_m_l\from($raw, false, $lot);
+        $end = microtime(true);
+        $content = '<?' . "php\n\nreturn " . php_export($content) . ';';
+        $a .= strtr(htmlspecialchars($content), [
+            "\n" => '<span class="char-enter">' . "\n" . '</span>',
+            "\t" => '<span class="char-tab">' . "\t" . '</span>',
+            ' ' => '<span class="char-space"> </span>'
+        ]);
+        $a .= '<span class="char-end">' . "\n" . '</span></pre>';
+        if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.php')) {
+            $test = strtr(file_get_contents($f), [
+                "\r\n" => "\n",
+                "\r" => "\n"
+            ]);
+            if ($error = $content !== $test) {
+                $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+                $b .= strtr(htmlspecialchars($test), [
+                    "\n" => '<span class="char-enter">' . "\n" . '</span>',
+                    "\t" => '<span class="char-tab">' . "\t" . '</span>',
+                    ' ' => '<span class="char-space"> </span>'
+                ]);
+                $b .= '<span class="char-end">' . "\n" . '</span></pre>';
+            }
+        } else {
+            // file_put_contents($f, $content);
+            $error = false; // No test file to compare
         }
-    ];
-    $start = microtime(true);
-    $data = x\y_a_m_l\from($raw, false, $test_data);
-    $end = microtime(true);
-    $out .= htmlspecialchars('php' === $view ? preg_replace(['/=>\s*\n\s*/', '/\barray\s+\(/'], ['=> ', 'array('], var_export($data, true)) : strtr(json_encode($data, JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT), ['    ' => '  ']));
-    $out .= '</pre>';
+        $out .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b . '</div>';
+    }
     $out .= '</div>';
     $time = round(($end - $start) * 1000, 2);
-    $out .= '<p style="color:#' . ($time >= 1 ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
+    if ($error) {
+        $error_count += 1;
+    }
+    $slow = $time >= 1;
+    $out .= '<p style="color:#' . ($slow ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
 }
 
 $out .= '</body>';
 $out .= '</html>';
+
+if ($error_count) {
+    $out = strtr($out, ['</title>' => ' (' . $error_count . ')</title>']);
+}
 
 echo $out;

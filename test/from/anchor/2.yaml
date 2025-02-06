@@ -1,6 +1,8 @@
 asdf-1: &asdf
   a: 1
-  b: 2
-  c: 3
+  s: 2
+  d: 3
+  f: 4
 asdf-2: *asdf
 asdf-3: *asdf
+asdf-4: *asdf

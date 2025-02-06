@@ -2,9 +2,9 @@
   1: asdf,
   1.5: asdf,
   a,
-  b:,
-  c: ~,
-  False: asdf,
-  Null: asdf,
-  True: asdf
+  s:,
+  d: ~,
+  false: asdf,
+  null: asdf,
+  true: asdf
 }

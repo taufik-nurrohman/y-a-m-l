@@ -1,1 +1,3 @@
-<?php return 1e3;
+<?php
+
+return 1e3;
