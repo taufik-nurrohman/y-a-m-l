@@ -73,7 +73,7 @@ asdf-4: *asdf
 > values and does not perform proper memory management by linking the anchored values to their aliases as
 > [references](https://www.php.net/manual/en/language.references.return.php), for simplicity [^1].
 
-[^1]: See this issue: [Anchors as “Real” References](https://github.com/taufik-nurrohman/y-a-m-l/issues/1)
+[^1]: See issue: [Anchors as “Real” References](https://github.com/taufik-nurrohman/y-a-m-l/issues/1)
 
 ### Array
 
