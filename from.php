@@ -348,16 +348,21 @@ namespace x\y_a_m_l\from {
         if ("" === $v || false === \strpos('"' . "'", $v[0])) {
             return ["", $v];
         }
+        // `"`
+        // `'`
         $r = [$c = $v[0], ""];
         $v = \substr($v, 1);
         // <https://yaml.org/spec/1.2.2#731-double-quoted-style>
         if ('"' === $c) {
             while (false !== ($n = \strpos($v, $c))) {
+                // `"asdf"` or `"asdf\"`
                 $r[0] .= \substr($v, 0, $n += 1);
                 $v = \substr($v, $n);
                 if ("\\" !== \substr($r[0], -2, 1)) {
+                    // `"asdf"`
                     break;
                 }
+                // `"asdf\"…`
             }
             $r[1] .= $v;
             return $c === $r[0] ? ["", $c . $r[1]] : $r;
@@ -365,13 +370,16 @@ namespace x\y_a_m_l\from {
         // <https://yaml.org/spec/1.2.2#732-single-quoted-style>
         if ("'" === $c) {
             while (false !== ($n = \strpos($v, $c))) {
+                // `'asdf'`
                 $r[0] .= \substr($v, 0, $n += 1);
                 $v = \substr($v, $n);
                 if ($c === ($v[0] ?? 0)) {
                     $r[0] .= $c;
                     $v = \substr($v, 1);
+                    // `'asdf''…`
                     continue;
                 }
+                // `'asdf'`
                 break;
             }
             $r[1] .= $v;
@@ -615,7 +623,7 @@ namespace x\y_a_m_l\from {
                             continue;
                         }
                         // `asdf: asdf: asdf`
-                        if ("" !== $v && false === \strpos('[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+                        if ("" !== $v && false === \strpos('&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
                             $to[$k] = null; // Broken :(
                             continue;
                         }
@@ -667,7 +675,7 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 // `asdf: asdf: asdf`
-                if ("" !== $v && false === \strpos('[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+                if ("" !== $v && false === \strpos('&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
                     $to[$k] = null; // Broken :(
                     continue;
                 }

@@ -4,11 +4,13 @@ if (!in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
     exit;
 }
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 
 ini_set('display_errors', true);
 ini_set('display_startup_errors', true);
 ini_set('html_errors', 1);
+
+date_default_timezone_set('Asia/Jakarta');
 
 define('D', DIRECTORY_SEPARATOR);
 define('PATH', __DIR__);
@@ -44,10 +46,10 @@ if (!function_exists('array_is_list')) {
 }
 
 // <https://github.com/mecha-cms/mecha/blob/v3.2.0/engine/f.php#L1606-L1671>
-function php_export($value, $d = "") {
+function php_export($value, $d = "", $key_as_string = false, $is_object = null) {
     if (is_object($value)) {
         if ($value instanceof stdClass) {
-            return '(object) ' . php_export((array) $value, $d);
+            return '(object) ' . php_export((array) $value, $d, true, true);
         }
         return strtr(var_export($value, true), [
             "\n " . $d => "\n" . $d,
@@ -56,13 +58,17 @@ function php_export($value, $d = "") {
     }
     if (is_array($value)) {
         $out = [];
-        if (array_is_list($value)) {
+        if (!$is_object && array_is_list($value)) {
             foreach ($value as $k => $v) {
-                $out[] = php_export($v, $d . '  ');
+                $out[] = php_export($v, $d . '  ', $key_as_string);
             }
         } else {
             foreach ($value as $k => $v) {
-                $out[] = php_export($k) . ' => ' . php_export($v, $d . '  ');
+                $k = php_export($k);
+                if ($key_as_string && is_numeric($k)) {
+                    $k = "'" . $k . "'";
+                }
+                $out[] = $k . ' => ' . php_export($v, $d . '  ', $key_as_string);
             }
         }
         return "array(\n  " . $d . implode(",\n" . $d . '  ', $out) . "\n" . $d . ')';
@@ -87,14 +93,22 @@ $out .= '</title>';
 $out .= '<style>';
 if (!empty($_GET['c'])) {
     $out .= <<<CSS
-.char-end,
-.char-enter,
-.char-space,
-.char-tab {
+.c-e,
+.c-n,
+.c-s,
+.c-t {
   opacity: 0.5;
   position: relative;
 }
-.char-end::before {
+.c-e {
+  opacity: 1;
+  color: #f00;
+}
+.c-n {
+  opacity: 1;
+  color: #090;
+}
+.c-e::before {
   bottom: 0;
   content: '␄';
   left: 0;
@@ -103,7 +117,7 @@ if (!empty($_GET['c'])) {
   text-align: center;
   top: 0;
 }
-.char-enter::before {
+.c-n::before {
   bottom: 0;
   content: '␤';
   left: 0;
@@ -112,7 +126,7 @@ if (!empty($_GET['c'])) {
   text-align: center;
   top: 0;
 }
-.char-space::before {
+.c-s::before {
   bottom: 0;
   content: '·';
   left: 0;
@@ -121,7 +135,7 @@ if (!empty($_GET['c'])) {
   text-align: center;
   top: 0;
 }
-.char-tab::before {
+.c-t::before {
   bottom: 0;
   content: '→';
   left: 0;
@@ -191,11 +205,11 @@ foreach ($files as $v) {
     $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $out .= strtr(htmlspecialchars($raw), [
-        "\n" => '<span class="char-enter">' . "\n" . '</span>',
-        "\t" => '<span class="char-tab">' . "\t" . '</span>',
-        ' ' => '<span class="char-space"> </span>'
+        "\n" => '<span class="c-n">' . "\n" . '</span>',
+        "\t" => '<span class="c-t">' . "\t" . '</span>',
+        ' ' => '<span class="c-s"> </span>'
     ]);
-    $out .= '<span class="char-end">' . "\n" . '</span></pre>';
+    $out .= '<span class="c-e">' . "\n" . '</span></pre>';
     if ('json' === $view) {
         $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
         $start = microtime(true);
@@ -203,11 +217,11 @@ foreach ($files as $v) {
         $end = microtime(true);
         $content = strtr(json_encode($content, JSON_PRETTY_PRINT), ['    ' => '  ']);
         $out .= strtr(htmlspecialchars($content), [
-            "\n" => '<span class="char-enter">' . "\n" . '</span>',
-            "\t" => '<span class="char-tab">' . "\t" . '</span>',
-            ' ' => '<span class="char-space"> </span>'
+            "\n" => '<span class="c-n">' . "\n" . '</span>',
+            "\t" => '<span class="c-t">' . "\t" . '</span>',
+            ' ' => '<span class="c-s"> </span>'
         ]);
-        $out .= '<span class="char-end">' . "\n" . '</span></pre>';
+        $out .= '<span class="c-e">' . "\n" . '</span></pre>';
     } else if ('php' === $view) {
         $out .= '<div style="flex:1;min-width:0;">';
         $a = $b = "";
@@ -222,11 +236,11 @@ foreach ($files as $v) {
         $end = microtime(true);
         $content = '<?' . "php\n\nreturn " . php_export($content) . ';';
         $a .= strtr(htmlspecialchars($content), [
-            "\n" => '<span class="char-enter">' . "\n" . '</span>',
-            "\t" => '<span class="char-tab">' . "\t" . '</span>',
-            ' ' => '<span class="char-space"> </span>'
+            "\n" => '<span class="c-n">' . "\n" . '</span>',
+            "\t" => '<span class="c-t">' . "\t" . '</span>',
+            ' ' => '<span class="c-s"> </span>'
         ]);
-        $a .= '<span class="char-end">' . "\n" . '</span></pre>';
+        $a .= '<span class="c-e">' . "\n" . '</span></pre>';
         if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.php')) {
             $test = strtr(file_get_contents($f), [
                 "\r\n" => "\n",
@@ -235,11 +249,11 @@ foreach ($files as $v) {
             if ($error = $content !== $test) {
                 $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
                 $b .= strtr(htmlspecialchars($test), [
-                    "\n" => '<span class="char-enter">' . "\n" . '</span>',
-                    "\t" => '<span class="char-tab">' . "\t" . '</span>',
-                    ' ' => '<span class="char-space"> </span>'
+                    "\n" => '<span class="c-n">' . "\n" . '</span>',
+                    "\t" => '<span class="c-t">' . "\t" . '</span>',
+                    ' ' => '<span class="c-s"> </span>'
                 ]);
-                $b .= '<span class="char-end">' . "\n" . '</span></pre>';
+                $b .= '<span class="c-e">' . "\n" . '</span></pre>';
             }
         } else {
             // file_put_contents($f, $content);

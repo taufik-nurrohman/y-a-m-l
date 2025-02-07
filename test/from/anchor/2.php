@@ -1,8 +1,28 @@
 <?php
 
 return (object) array(
-  'asdf-1' => null,
-  'asdf-2' => null,
-  'asdf-3' => null,
-  'asdf-4' => null
+  'asdf-1' => (object) array(
+    'a' => 1,
+    's' => 2,
+    'd' => 3,
+    'f' => 4
+  ),
+  'asdf-2' => (object) array(
+    'a' => 1,
+    's' => 2,
+    'd' => 3,
+    'f' => 4
+  ),
+  'asdf-3' => (object) array(
+    'a' => 1,
+    's' => 2,
+    'd' => 3,
+    'f' => 4
+  ),
+  'asdf-4' => (object) array(
+    'a' => 1,
+    's' => 2,
+    'd' => 3,
+    'f' => 4
+  )
 );

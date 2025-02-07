@@ -1,5 +1,5 @@
 <?php
 
 return (object) array(
-  'asdf' => null
+  'asdf' => 'asdf asdf'
 );

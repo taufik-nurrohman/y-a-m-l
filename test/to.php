@@ -4,11 +4,13 @@ if (!in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
     exit;
 }
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 
 ini_set('display_errors', true);
 ini_set('display_startup_errors', true);
 ini_set('html_errors', 1);
+
+date_default_timezone_set('Asia/Jakarta');
 
 define('D', DIRECTORY_SEPARATOR);
 define('PATH', __DIR__);
@@ -35,14 +37,22 @@ $out .= '</title>';
 $out .= '<style>';
 if (!empty($_GET['c'])) {
     $out .= <<<CSS
-.char-end,
-.char-enter,
-.char-space,
-.char-tab {
+.c-e,
+.c-n,
+.c-s,
+.c-t {
   opacity: 0.5;
   position: relative;
 }
-.char-end::before {
+.c-e {
+  opacity: 1;
+  color: #f00;
+}
+.c-n {
+  opacity: 1;
+  color: #090;
+}
+.c-e::before {
   bottom: 0;
   content: '␄';
   left: 0;
@@ -51,7 +61,7 @@ if (!empty($_GET['c'])) {
   text-align: center;
   top: 0;
 }
-.char-enter::before {
+.c-n::before {
   bottom: 0;
   content: '␤';
   left: 0;
@@ -60,7 +70,7 @@ if (!empty($_GET['c'])) {
   text-align: center;
   top: 0;
 }
-.char-space::before {
+.c-s::before {
   bottom: 0;
   content: '·';
   left: 0;
@@ -69,7 +79,7 @@ if (!empty($_GET['c'])) {
   text-align: center;
   top: 0;
 }
-.char-tab::before {
+.c-t::before {
   bottom: 0;
   content: '→';
   left: 0;
@@ -134,11 +144,11 @@ foreach ($files as $v) {
     $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
     $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
     $out .= strtr(htmlspecialchars($raw), [
-        "\n" => '<span class="char-enter">' . "\n" . '</span>',
-        "\t" => '<span class="char-tab">' . "\t" . '</span>',
-        ' ' => '<span class="char-space"> </span>'
+        "\n" => '<span class="c-n">' . "\n" . '</span>',
+        "\t" => '<span class="c-t">' . "\t" . '</span>',
+        ' ' => '<span class="c-s"> </span>'
     ]);
-    $out .= '<span class="char-end">' . "\n" . '</span></pre>';
+    $out .= '<span class="c-e">' . "\n" . '</span></pre>';
     if (true) {
         $out .= '<div style="flex:1;min-width:0;">';
         $a = $b = "";
@@ -147,11 +157,11 @@ foreach ($files as $v) {
         $content = x\y_a_m_l\to(require $v, 2);
         $end = microtime(true);
         $a .= strtr(htmlspecialchars($content), [
-            "\n" => '<span class="char-enter">' . "\n" . '</span>',
-            "\t" => '<span class="char-tab">' . "\t" . '</span>',
-            ' ' => '<span class="char-space"> </span>'
+            "\n" => '<span class="c-n">' . "\n" . '</span>',
+            "\t" => '<span class="c-t">' . "\t" . '</span>',
+            ' ' => '<span class="c-s"> </span>'
         ]);
-        $a .= '<span class="char-end">' . "\n" . '</span></pre>';
+        $a .= '<span class="c-e">' . "\n" . '</span></pre>';
         if (is_file($f = dirname($v) . D . pathinfo($v, PATHINFO_FILENAME) . '.yaml')) {
             $test = strtr(file_get_contents($f), [
                 "\r\n" => "\n",
@@ -160,11 +170,11 @@ foreach ($files as $v) {
             if ($error = $content !== $test) {
                 $b .= '<pre style="background:#cff;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:1em 0 0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
                 $b .= strtr(htmlspecialchars($test), [
-                    "\n" => '<span class="char-enter">' . "\n" . '</span>',
-                    "\t" => '<span class="char-tab">' . "\t" . '</span>',
-                    ' ' => '<span class="char-space"> </span>'
+                    "\n" => '<span class="c-n">' . "\n" . '</span>',
+                    "\t" => '<span class="c-t">' . "\t" . '</span>',
+                    ' ' => '<span class="c-s"> </span>'
                 ]);
-                $b .= '<span class="char-end">' . "\n" . '</span></pre>';
+                $b .= '<span class="c-e">' . "\n" . '</span></pre>';
             }
         } else {
             // file_put_contents($f, $content);
