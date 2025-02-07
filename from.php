@@ -604,6 +604,11 @@ namespace x\y_a_m_l\from {
                     // `"asdf": `
                     // `'asdf': `
                     if (':' === (($q[1] = \ltrim($q[1]))[0] ?? 0) && false !== \strpos(" \n\t", \substr($q[1], 1, 1))) {
+                        // <https://github.com/nodeca/js-yaml/issues/189>
+                        if (false !== \strpos($q[0], "\n")) {
+                            $object = true;
+                            continue; // Broken :(
+                        }
                         $k = e($q[0]);
                         $v = \substr($q[1], 1);
                         if ("\n" === ($v[0] ?? 0)) {
@@ -623,7 +628,7 @@ namespace x\y_a_m_l\from {
                             continue;
                         }
                         // `asdf: asdf: asdf`
-                        if ("" !== $v && false === \strpos('&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+                        if ("" !== $v && false === \strpos('!&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
                             $to[$k] = null; // Broken :(
                             continue;
                         }
@@ -656,7 +661,11 @@ namespace x\y_a_m_l\from {
             }
             // `asdf: …`
             if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
-                $k = \trim(\substr($v, 0, $n));
+                // <https://github.com/nodeca/js-yaml/issues/189>
+                if (false !== \strpos($k = \trim(\substr($v, 0, $n)), "\n")) {
+                    $object = true;
+                    continue; // Broken :(
+                }
                 $v = \substr($v, $n + 1);
                 if ("\n" === ($v[0] ?? 0)) {
                     $to[$k] = v(d(\substr($v, 1)), $array, $lot);
@@ -675,7 +684,7 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 // `asdf: asdf: asdf`
-                if ("" !== $v && false === \strpos('&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+                if ("" !== $v && false === \strpos('!&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
                     $to[$k] = null; // Broken :(
                     continue;
                 }
@@ -684,6 +693,6 @@ namespace x\y_a_m_l\from {
             }
             return e(d($v), $array, $lot);
         }
-        return $to ? ($array ? $to : (object) $to) : null;
+        return $to || isset($object) ? ($array ? $to : (object) $to) : null;
     }
 }

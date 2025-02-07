@@ -32,26 +32,29 @@ namespace x\y_a_m_l\to {
         if ("" === $v) {
             return '""';
         }
+        if (\is_numeric($v)) {
+            return "'" . $v . "'";
+        }
         if (
+            // ` asdf` or `asdf `
+            ' ' === $v[0] || ' ' === \substr($v, -1) ||
             // `asdf:`
             ':' === \substr($v, -1) ||
             // `asdf #asdf`
             false !== ($n = \strpos($v, '#')) && false !== \strpos(" \n\t", \substr($v, $n - 1, 1)) ||
             // `asdf: asdf`
             false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n - 1, 1)) ||
-            // ` asdf` or `asdf `
-            false !== \strpos(" \n\t", $v[0]) || false !== \strpos(" \n\t", \substr($v, -1)) ||
             // <https://yaml.org/spec/1.2.2#56-miscellaneous-characters>
             // <https://yaml.org/spec/1.2.2#example-invalid-use-of-reserved-indicators>
-            false !== \strpos('!"#%&*+,-.0123456789:>?@[]`{|}' . "'\\", $v[0]) ||
+            false !== \strpos('!"#%&*+,-.:>?@[]`{|}' . "'\\", $v[0]) ||
             false !== \strpos(',false,null,true,~,', ',' . \strtolower($v) . ',') ||
-            \strlen($v) !== \strcspn($v, "=>\\")
+            \strlen($v) !== \strcspn($v, "<=>[\\]{|}")
         ) {
             return "'" . \strtr($v, [
                 "'" => "''"
             ]) . "'";
         }
-        if ($v !== \addcslashes($v, "\\")) {
+        if (false !== \strpos("\n\t", $v[0]) || false !== \strpos("\n\t", \substr($v, -1)) || $v !== \addcslashes($v, "\\")) {
             return \json_encode($v);
         }
         return $v;
@@ -144,9 +147,13 @@ namespace x\y_a_m_l\to {
                 } else {
                     $short = 6; // Disable flow style value!
                 }
-                $r[] = \strtr(v($v, $dent), [
+                $v = v($v, $dent);
+                if (false !== \strpos('>|', $v[0])) {
+                    $short = 6; // Disable flow style value!
+                }
+                $r[] = \preg_replace('/^[ \t]+$/m', "", \strtr($v, [
                     "\n" => "\n  "
-                ]);
+                ]));
             }
             // Prefer flow style value?
             if ($short < 6) {
@@ -161,6 +168,7 @@ namespace x\y_a_m_l\to {
             $r = [];
             $short = 0;
             foreach ($value as $k => $v) {
+                $k = \is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ') . "\n" : q($k);
                 if (\is_string($v) && ("" === $v || \strlen($v) < 41)) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
@@ -173,17 +181,21 @@ namespace x\y_a_m_l\to {
                     if (false !== \strpos('[{', $v[0])) {
                         $v = ' ' . $v;
                     } else {
-                        $v = "\n" . $dent . \strtr($v, [
+                        $v = \preg_replace('/^[ \t]+$/', "", "\n" . $dent . \strtr($v, [
                             "\n" => "\n" . $dent
-                        ]);
+                        ]));
                     }
-                    $r[] = q($k) . ':' . $v;
+                    $r[] = $k . ':' . $v;
                     continue;
                 }
-                $r[] = q($k) . ': ' . v($v, $dent);
+                if ('~' === ($v = v($v, $dent)) && '?' === ($k[0] ?? 0)) {
+                    $r[] = \substr($k, 0, -1);
+                    continue;
+                }
+                $r[] = $k . ': ' . $v;
             }
             // Prefer flow style value?
-            if ($short < 4) {
+            if ($short < 4 && '?' !== ($k[0] ?? 0)) {
                 return '{ ' . \implode(', ', $r) . ' }';
             }
             return "" !== ($value = \implode("\n", $r)) ? $value : null;

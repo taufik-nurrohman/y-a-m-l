@@ -57,10 +57,10 @@ function php_export($value, $d = "", $key_as_string = false, $is_object = null) 
         ]);
     }
     if (is_array($value)) {
-        $out = [];
+        $r = [];
         if (!$is_object && array_is_list($value)) {
             foreach ($value as $k => $v) {
-                $out[] = php_export($v, $d . '  ', $key_as_string);
+                $r[] = php_export($v, $d . '  ', $key_as_string);
             }
         } else {
             foreach ($value as $k => $v) {
@@ -68,10 +68,13 @@ function php_export($value, $d = "", $key_as_string = false, $is_object = null) 
                 if ($key_as_string && is_numeric($k)) {
                     $k = "'" . $k . "'";
                 }
-                $out[] = $k . ' => ' . php_export($v, $d . '  ', $key_as_string);
+                $r[] = $k . ' => ' . php_export($v, $d . '  ', $key_as_string);
             }
         }
-        return "array(\n  " . $d . implode(",\n" . $d . '  ', $out) . "\n" . $d . ')';
+        if (!$r) {
+            return 'array()';
+        }
+        return "array(\n  " . $d . implode(",\n" . $d . '  ', $r) . "\n" . $d . ')';
     }
     $value = var_export($value, true);
     if ("''" === $value) {
