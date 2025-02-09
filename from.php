@@ -345,6 +345,11 @@ namespace x\y_a_m_l\from {
         return d(\trim($r, "\n"));
     }
     function q(string $v) {
+        // `""…`
+        // `''…`
+        if (0 === \strpos($v, '""') || 2 === \strspn($v, "'")) {
+            return [$v[0] . $v[1], \substr($v, 2)];
+        }
         if ("" === $v || false === \strpos('"' . "'", $v[0])) {
             return ["", $v];
         }
