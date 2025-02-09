@@ -483,10 +483,38 @@ namespace x\y_a_m_l\from {
                         continue;
                     }
                 }
+                if ("?\0" === \substr($w, 0, 2)) {
+                    $last = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n?\0") + 2), " \n\t");
+                    if (('"' === ($c = $last[0] ?? 0) || "'" === $c) && "" === q($last)[0]) {
+                        $r[$i] .= "\n" . $v;
+                        continue;
+                    }
+                    if (':' === \trim(c($v))) {
+                        $r[$i] .= "\n:";
+                        continue;
+                    }
+                    if (':' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                        $r[$i] .= "\n: " . \substr($v, 2);
+                        continue;
+                    }
+                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                        $r[++$i] = "?\0" . \substr($v, 2);
+                        continue;
+                    }
+                    if ($d) {
+                        $r[$i] .= "\n" . $v;
+                        continue;
+                    }
+                    $r[++$i] = $v;
+                    continue;
+                }
                 if ("" !== ($q = q($w))[0] && ':' === (\trim($q[1])[0] ?? 0)) {
                     if ($d) {
                         $r[$i] .= "\n" . $v;
                         continue;
+                    }
+                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                        $v = "?\0" . \substr($v, 2);
                     }
                     $r[++$i] = $v;
                     continue;
@@ -496,6 +524,9 @@ namespace x\y_a_m_l\from {
                     if ($d) {
                         $r[$i] .= "\n" . $v;
                         continue;
+                    }
+                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                        $v = "?\0" . \substr($v, 2);
                     }
                     $r[++$i] = $v;
                     continue;
@@ -535,6 +566,9 @@ namespace x\y_a_m_l\from {
                             continue;
                         }
                     }
+                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                        $v = "?\0" . \substr($v, 2);
+                    }
                     $r[++$i] = $v;
                     continue;
                 }
@@ -555,12 +589,12 @@ namespace x\y_a_m_l\from {
             } else {
                 $v = c($v);
             }
-            if ('-' === $v) {
-                $r[++$i] = "-\0";
+            if ('-' === $v || '?' === $v) {
+                $r[++$i] = $v . "\0";
                 continue;
             }
-            if ('-' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
-                $r[++$i] = "-\0" . \substr($v, 2);
+            if ("" !== $v && false !== \strpos('-?', $v[0]) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                $r[++$i] = $v[0] . "\0" . \substr($v, 2);
                 continue;
             }
             // <https://yaml.org/spec/1.2.2#741-flow-sequences>
@@ -663,6 +697,24 @@ namespace x\y_a_m_l\from {
                     $r[] = v($vv, $array, $lot);
                 }
                 return $r;
+            }
+            // `? asdf…`
+            if ("?\0" === \substr($v, 0, 2)) {
+                if (false !== ($n = \strpos($v, "\n:")) && false !== \strpos(" \n\t", \substr($v, $n + 2, 1))) {
+                    $k = v(\strtr(\substr($v, 2, $n - 2), ["\n  " => "\n"]), $array, $lot);
+                    $v = v(\strtr(\substr($v, $n + 3), ["\n  " => "\n"]), $array, $lot);
+                } else if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
+                    $k = v(\substr($v, 2, $n - 2), $array, $lot);
+                    $v = v(\substr($v, $n + 2), $array, $lot);
+                } else {
+                    $k = v(\substr($v, 2), $array, $lot);
+                    $v = null;
+                }
+                if (-\INF === $k || -\NAN === $k || \INF === $k || \NAN === $k || \is_array($k) || \is_object($k) || false === $k || null === $k || true === $k) {
+                    $k = "\0" . \serialize($k) . "\0";
+                }
+                $to[$k] = $v;
+                continue;
             }
             // `asdf: …`
             if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {

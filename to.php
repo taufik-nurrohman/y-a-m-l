@@ -168,7 +168,7 @@ namespace x\y_a_m_l\to {
             $r = [];
             $short = 0;
             foreach ($value as $k => $v) {
-                $k = \is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ') . "\n" : q($k);
+                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ') . "\n" : q($k));
                 if (\is_string($v) && ("" === $v || \strlen($v) < 41)) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
