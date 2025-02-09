@@ -7,6 +7,73 @@ namespace x\y_a_m_l {
 }
 
 namespace x\y_a_m_l\from {
+    function b(string $v) {
+        $r = ["", ""];
+        $stack = [];
+        while ("" !== (string) $v) {
+            if ($n = \strcspn($v, '"' . "'" . '#[]{}')) {
+                $r[0] .= \substr($v, 0, $n);
+                $v = \substr($v, $n);
+            }
+            if (('"' === ($c = $v[0] ?? 0) || "'" === $c) && "" !== ($q = q($v))[0]) {
+                $r[0] .= $q[0];
+                $v = \substr($v, \strlen($q[0]));
+                continue;
+            }
+            if ('#' === $c) {
+                if (false === ($n = \strpos($v, "\n"))) {
+                    break;
+                }
+                $v = \substr($v, $n + 1);
+                continue;
+            }
+            if ('[' === $c) {
+                $stack[] = $c;
+                $r[0] .= $c;
+                $v = \substr($v, 1);
+                continue;
+            }
+            if (']' === $c) {
+                if ('[' !== \end($stack)) {
+                    return ["", $r[0] . $v]; // Broken :(
+                }
+                \array_pop($stack);
+                $r[0] .= $c;
+                $v = \substr($v, 1);
+                if ("" !== $v && false === \strpos('#,]}' . " \n\t", $v[0])) {
+                    return ["", $r[0] . $v]; // Broken :(
+                }
+                continue;
+            }
+            if ('{' === $c) {
+                $stack[] = $c;
+                $r[0] .= $c;
+                $v = \substr($v, 1);
+                if ("" !== $v && false !== \strpos('#,[{' . " \n\t", $v[0])) {
+                    return ["", $r[0] . $v]; // Broken :(
+                }
+                continue;
+            }
+            if ('}' === $c) {
+                if ('{' !== \end($stack)) {
+                    return ["", $r[0] . $v]; // Broken :(
+                }
+                \array_pop($stack);
+                $r[0] .= $c;
+                $v = \substr($v, 1);
+                if ("" !== $v && false === \strpos('#,]}' . " \n\t", $v[0])) {
+                    return ["", $r[0] . $v]; // Broken :(
+                }
+                continue;
+            }
+            break;
+        }
+        if ($stack) {
+            return ["", $r[0] . $v]; // Broken :(
+        }
+        $r[1] = $v;
+        return $r;
+    }
     function c(string $v) {
         if (0 === ($n = \strpos($v, '#'))) {
             return "";
@@ -227,13 +294,13 @@ namespace x\y_a_m_l\from {
         return '+' === $e ? $r : ('-' === $e ? \rtrim($r) : ("\n" === \substr($r, -1) ? \rtrim($r) . "\n" : $r));
     }
     function o(string $v) {
+        $b = $v[0];
         $d = $r = "";
-        $list = false;
         $stack = [];
         while ("" !== (string) $v) {
             if ($n = \strcspn($v, '"' . "'" . '#,:[]{}')) {
-                $r .= \trim(\substr($v, 0, $n));
-                $v = \trim(\substr($v, $n));
+                $r .= \ltrim(\substr($v, 0, $n));
+                $v = \ltrim(\substr($v, $n));
             }
             if (('"' === ($c = $v[0] ?? 0) || "'" === $c) && "" !== ($q = q($v))[0]) {
                 $r .= $q[0];
@@ -241,18 +308,31 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             if ('#' === $c) {
-                if (false === ($x = \strpos($v, "\n"))) {
+                if ("\n" . $d . "-\0" === \substr("\n" . $r, $n = -(1 + \strlen($d) + 1 + 1))) {
+                    $r = \substr($r, 0, $n + 1);
+                }
+                if (false === \strpos(" \n\t", \substr($r, -1))) {
+                    if ($n = \strcspn($v, ',:[]{}')) {
+                        $r .= \substr($v, 0, $n);
+                        $v = \ltrim(\substr($v, $n));
+                        continue;
+                    }
+                    $r .= $c;
+                    $v = \substr($v, 1);
+                    continue;
+                }
+                if (false === ($n = \strpos($v, "\n"))) {
                     break;
                 }
-                $v = \trim(\substr($v, $x + 1));
+                $v = \ltrim(\substr($v, $n + 1));
                 continue;
             }
             if (',' === $c) {
                 if ($c === $v) {
                     return ""; // Broken :(
                 }
-                $v = \trim(\substr($v, 1));
-                if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
+                $v = \ltrim(\substr($v, 1));
+                if ("" !== ($q = q($w = \ltrim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
                     // …
@@ -261,23 +341,27 @@ namespace x\y_a_m_l\from {
                         $r .= ': ~';
                     }
                 }
-                $r .= "\n" . $d . ($list ? "-\0" : "");
+                $r .= "\n" . $d . ('[' === \end($stack) ? "-\0" : "");
                 continue;
             }
             if (':' === $c) {
                 if ($c === $v) {
                     return ""; // Broken :(
                 }
-                $v = \trim(\substr($v, 1));
-                $r .= ': ';
+                $r .= $c;
+                $v = \substr($v, 1);
+                if (false === \strpos(" \n\t", $v[0])) {
+                    continue;
+                }
+                $r .= ' ';
+                $v = \ltrim($v);
                 continue;
             }
             if ('[' === $c) {
                 $stack[] = $c;
                 $d .= ' ';
-                $list = true;
                 $r .= "\n" . $d . "-\0";
-                $v = \trim(\substr($v, 1));
+                $v = \ltrim(\substr($v, 1));
                 continue;
             }
             if (']' === $c) {
@@ -285,13 +369,12 @@ namespace x\y_a_m_l\from {
                     return ""; // Broken :(
                 }
                 \array_pop($stack);
-                $v = \trim(\substr($v, 1));
+                $v = \ltrim(\substr($v, 1));
                 if ("" !== $v && false === \strpos(',]}', $v[0])) {
                     return ""; // Broken :(
                 }
                 $d = \substr($d, 0, -1);
-                $list = false;
-                if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
+                if ("" !== ($q = q($w = \trim(\strrchr($r = \rtrim($r, "\n"), "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
                     // …
@@ -307,8 +390,8 @@ namespace x\y_a_m_l\from {
             }
             if ('{' === $c) {
                 $stack[] = $c;
-                $v = \trim(\substr($v, 1));
-                if ("" !== $v && false !== \strpos(',[{', $v[0])) {
+                $v = \ltrim(\substr($v, 1));
+                if ("" !== ($w = \trim($v)) && false !== \strpos(',[{', $w[0])) {
                     return ""; // Broken :(
                 }
                 $d .= ' ';
@@ -320,12 +403,12 @@ namespace x\y_a_m_l\from {
                     return ""; // Broken :(
                 }
                 \array_pop($stack);
-                $v = \trim(\substr($v, 1));
+                $v = \ltrim(\substr($v, 1));
                 if ("" !== $v && false === \strpos(',]}', $v[0])) {
                     return ""; // Broken :(
                 }
                 $d = \substr($d, 0, -1);
-                if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
+                if ("" !== ($q = q($w = \trim(\strrchr($r = \rtrim($r, "\n"), "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
                     // …
@@ -336,13 +419,16 @@ namespace x\y_a_m_l\from {
                 }
                 continue;
             }
-            $r .= \trim($v);
+            $r .= \ltrim($v);
             break;
         }
         if ($stack) {
             return ""; // Broken :(
         }
-        return d(\trim($r, "\n"));
+        if ("" === \trim($r)) {
+            return '[' === $b ? '[]' : '{}';
+        }
+        return d(\trim(\rtrim($r), "\n"));
     }
     function q(string $v) {
         // `""…`
@@ -551,7 +637,7 @@ namespace x\y_a_m_l\from {
                         continue;
                     }
                 }
-                if (false !== ($n = \strpos($w, ':')) && false !== \strpos(" \t", \substr($w, $n + 1, 1))) {
+                if (false !== ($n = \strpos($w, ":\t") ?: \strpos($w, ': '))) {
                     if (('"' === ($c = \trim(\substr($w, $n + 2))[0] ?? 0) || "'" === $c) && "" === q(\trim(\substr($r[$i], $n + 2)))[0]) {
                         $r[$i] .= "\n" . $v;
                         continue;
@@ -716,8 +802,13 @@ namespace x\y_a_m_l\from {
                 $to[$k] = $v;
                 continue;
             }
+            // `asdf:`
+            if (':' === \substr($v, -1)) {
+                $to[\trim(\substr($v, 0, -1))] = null;
+                continue;
+            }
             // `asdf: …`
-            if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
+            if (false !== ($n = \strpos($v, ":\n") ?: \strpos($v, ":\t") ?: \strpos($v, ': '))) {
                 // <https://github.com/nodeca/js-yaml/issues/189>
                 if (false !== \strpos($k = \trim(\substr($v, 0, $n)), "\n")) {
                     $object = true;
