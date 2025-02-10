@@ -195,6 +195,12 @@ namespace x\y_a_m_l\from {
         if (\is_numeric($n)) {
             return 0 + $n;
         }
+        if (false !== ($n = \strpos($v, ":\n"))) {
+            $k = e(\trim(\substr($v, 0, $n)), $array, $lot);
+            $v = v(d(\substr($v, $n + 2)), $array, $lot);
+            $r = [$k => $v];
+            return $array ? $r : (object) $r;
+        }
         $r = "";
         foreach (\explode("\n", $v) as $v) {
             if ("" === ($v = \trim($v))) {
@@ -347,7 +353,10 @@ namespace x\y_a_m_l\from {
             }
             if ('[' === $c) {
                 $stack[] = $c;
-                $d .= ' ';
+                $d .= '  ';
+                if (': ' === \substr($r, -2)) {
+                    $r = \rtrim($r);
+                }
                 $r .= "\n" . $d . "-\0";
                 $v = \ltrim(\substr($v, 1));
                 continue;
@@ -361,7 +370,7 @@ namespace x\y_a_m_l\from {
                 if ("" !== $v && false === \strpos(',]}', $v[0])) {
                     return ""; // Broken :(
                 }
-                $d = \substr($d, 0, -1);
+                $d = \substr($d, 0, -2);
                 if ("" !== ($q = q($w = \trim(\strrchr($r = \rtrim($r, "\n"), "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
@@ -382,7 +391,10 @@ namespace x\y_a_m_l\from {
                 if ("" !== $v && false !== \strpos(',[{', $v[0])) {
                     return ""; // Broken :(
                 }
-                $d .= ' ';
+                $d .= '  ';
+                if (': ' === \substr($r, -2)) {
+                    $r = \rtrim($r);
+                }
                 $r .= "\n" . $d;
                 continue;
             }
@@ -395,7 +407,7 @@ namespace x\y_a_m_l\from {
                 if ("" !== $v && false === \strpos(',]}', $v[0])) {
                     return ""; // Broken :(
                 }
-                $d = \substr($d, 0, -1);
+                $d = \substr($d, 0, -2);
                 if ("" !== ($q = q($w = \trim(\strrchr($r = \rtrim($r, "\n"), "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
@@ -516,7 +528,7 @@ namespace x\y_a_m_l\from {
             $d = \strspn($v, ' ');
             // Part of a block…
             if ($w = $r[$i] ?? 0) {
-                $w = \rtrim(\strstr($w, "\n", true) ?: $w, " \t");
+                $w = \rtrim(\strstr($w . "\n", "\n", true), " \t");
                 if (false !== \strpos('>|', \trim(\rtrim(c($w), '+-0123456789')))) {
                     if ($d || "" === $v) {
                         $r[$i] .= "\n" . $v;
@@ -798,7 +810,7 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             // `asdf: …`
-            if (false !== ($n = \strpos($v, ":\n") ?: \strpos($v, ":\t") ?: \strpos($v, ': '))) {
+            if (false !== ($n = \strpos($w = \strstr($v . "\n", "\n", true), ":\n") ?: \strpos($w, ":\t") ?: \strpos($w, ': '))) {
                 // <https://github.com/nodeca/js-yaml/issues/189>
                 if (false !== \strpos($k = \trim(\substr($v, 0, $n)), "\n")) {
                     $object = true;
@@ -826,7 +838,7 @@ namespace x\y_a_m_l\from {
                     $to[$k] = null; // Broken :(
                     continue;
                 }
-                $to[$k] = e($v, $array, $lot);
+                $to[$k] = v($v, $array, $lot);
                 continue;
             }
             return e(d($v), $array, $lot);
