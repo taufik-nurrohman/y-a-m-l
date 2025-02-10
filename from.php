@@ -197,7 +197,9 @@ namespace x\y_a_m_l\from {
         }
         if (false !== ($n = \strpos($v, ":\n"))) {
             $k = e(\trim(\substr($v, 0, $n)), $array, $lot);
+            echo '<pre style="border:2px solid">'.d(\substr($v, $n + 2)).'</pre>';
             $v = v(d(\substr($v, $n + 2)), $array, $lot);
+            echo '<pre style="border:2px solid">'.var_export($v,true).'</pre>';
             $r = [$k => $v];
             return $array ? $r : (object) $r;
         }
@@ -781,6 +783,10 @@ namespace x\y_a_m_l\from {
                         }
                         $r[] = e($q[0], $array, $lot);
                         continue;
+                    }
+                    if (false !== \strpos($vv, ":\n-\0")) {
+                        echo '<pre style="border:4px solid green">'.$vv.'</pre>';
+                        $vv = \strtr($vv, ["\n" => "\n  "]);
                     }
                     $r[] = v($vv, $array, $lot);
                 }
