@@ -437,7 +437,9 @@ $value = from_yaml($value, false, $lot);
 var_dump($lot, $value);
 ~~~
 
-> [!NOTE] Tagged mapping key is not supported:
+> [!NOTE]
+>
+> Tagged mapping key is not supported:
 >
 > ~~~ yaml
 > # :)
