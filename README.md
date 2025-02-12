@@ -407,7 +407,7 @@ closure. Note that this parameter is provided as a live reference, so you cannot
 directly into it. Instead, you must put it into a temporary variable:
 
 ~~~ php
-// <https://symfony.com/doc/7.0/reference/formats/yaml.html#symfony-specific-features>
+// <https://symfony.com/doc/7.3/reference/formats/yaml.html#symfony-specific-features>
 $lot = [
     '!php/const' => static function ($value) {
         if (is_string($value) && defined($value)) {
