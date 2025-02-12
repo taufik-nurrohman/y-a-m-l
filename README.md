@@ -92,6 +92,62 @@ asdf-4: *asdf
 [ asdf, asdf, asdf, asdf ]
 ~~~
 
+### Map
+
+~~~ yaml
+? asdf
+  asdf
+: asdf
+~~~
+
+> [!NOTE]
+>
+> This is an experimental feature and I don’t plan to make it official. PHP array does not support storing complex data
+> as its key. Even the [`SplObjectStorage`](https://www.php.net/class.splobjectstorage) and
+> [`WeakMap`](https://www.php.net/class.weakmap) classes do only support object as their key, so this feature will be
+> impossible to achieve. Current behavior is to convert this complex data into a serialized data. To mark it as a
+> complex key, a `null` character is prepended and appended to it. This does not apply to float, integer, and string
+> data types:
+>
+> ##### Input
+>
+> ~~~ yaml
+> ? 12.3
+> : asdf
+> ? 1234
+> : asdf
+> ? asdf
+> : asdf
+> ? asdf:
+>   - asdf
+>   - asdf
+>   - asdf
+> : asdf
+> ? false
+> : asdf
+> ? null
+> : asdf
+> ? true
+> : asdf
+> ~~~
+>
+> ##### Output
+>
+> ~~~ php
+> return (object) array(
+>     '12.3' => 'asdf',
+>     '1234' => 'asdf',
+>     'asdf' => 'asdf',
+>     "\0" . 'O:8:"stdClass":1:{s:4:"asdf";a:3:{i:0;s:4:"asdf";i:1;s:4:"asdf";i:2;s:4:"asdf";}}' . "\0" => 'asdf',
+>     "\0" . 'b:0;' . "\0" => 'asdf',
+>     "\0" . 'N;' . "\0" => 'asdf',
+>     "\0" . 'b:1;' . "\0" => 'asdf'
+> );
+> ~~~
+>
+> I wouldn’t recommend you to have this kind of syntax in your YAML document, even though this parser is
+> able to read some of it. By the time you get there, you may already be using a better YAML parser due to various bugs.
+
 ### Object
 
 #### Block
