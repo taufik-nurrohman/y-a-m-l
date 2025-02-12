@@ -5,8 +5,5 @@ return (object) array(
   '1.5' => 'asdf',
   'a' => null,
   's' => null,
-  'd' => null,
-  'false' => 'asdf',
-  'null' => 'asdf',
-  'true' => 'asdf'
+  'd' => null
 );

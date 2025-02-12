@@ -1,7 +1,7 @@
 <?php
 
 return (object) array(
-  'false' => false,
-  'null' => null,
-  'true' => true
+  '' . "\0" . 'b:0;' . "\0" . '' => false,
+  '' . "\0" . 'N;' . "\0" . '' => null,
+  '' . "\0" . 'b:1;' . "\0" . '' => true
 );

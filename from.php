@@ -71,11 +71,15 @@ namespace x\y_a_m_l\from {
         }
         return $v;
     }
-    function d(string $v) {
+    function d(string $v, $next = false) {
         if ($d = \strspn($v, ' ')) {
             $v = \substr(\strtr($v, [
                 "\n" . \str_repeat(' ', $d) => "\n"
             ]), $d);
+        } else if ($next && ($d = \strspn($v, ' ', \strpos($v, "\n") + 1))) {
+            $v = \strtr($v, [
+                "\n" . \str_repeat(' ', $d) => "\n"
+            ]);
         }
         return $v;
     }
@@ -195,14 +199,6 @@ namespace x\y_a_m_l\from {
         if (\is_numeric($n)) {
             return 0 + $n;
         }
-        if (false !== ($n = \strpos($v, ":\n"))) {
-            $k = e(\trim(\substr($v, 0, $n)), $array, $lot);
-            echo '<pre style="border:2px solid">'.d(\substr($v, $n + 2)).'</pre>';
-            $v = v(d(\substr($v, $n + 2)), $array, $lot);
-            echo '<pre style="border:2px solid">'.var_export($v,true).'</pre>';
-            $r = [$k => $v];
-            return $array ? $r : (object) $r;
-        }
         $r = "";
         foreach (\explode("\n", $v) as $v) {
             if ("" === ($v = \trim($v))) {
@@ -289,6 +285,16 @@ namespace x\y_a_m_l\from {
         $r = \substr($r, 1);
         return '+' === $e ? $r : ('-' === $e ? \rtrim($r) : ("\n" === \substr($r, -1) ? \rtrim($r) . "\n" : $r));
     }
+    function k(string $k, $array = false, array &$lot = []) {
+        if (\is_numeric($k)) {
+            return $k;
+        }
+        $k = v($k, $array, $lot);
+        if (-\INF === $k || -\NAN === $k || \INF === $k || \NAN === $k || \is_array($k) || \is_object($k) || false === $k || null === $k || true === $k) {
+            $k = "\0" . \serialize($k) . "\0";
+        }
+        return $k;
+    }
     function o(string $v) {
         $b = $v[0];
         $d = $r = "";
@@ -355,7 +361,7 @@ namespace x\y_a_m_l\from {
             }
             if ('[' === $c) {
                 $stack[] = $c;
-                $d .= '  ';
+                $d .= ' ';
                 if (': ' === \substr($r, -2)) {
                     $r = \rtrim($r);
                 }
@@ -372,7 +378,7 @@ namespace x\y_a_m_l\from {
                 if ("" !== $v && false === \strpos(',]}', $v[0])) {
                     return ""; // Broken :(
                 }
-                $d = \substr($d, 0, -2);
+                $d = \substr($d, 0, -1);
                 if ("" !== ($q = q($w = \trim(\strrchr($r = \rtrim($r, "\n"), "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
@@ -393,7 +399,7 @@ namespace x\y_a_m_l\from {
                 if ("" !== $v && false !== \strpos(',[{', $v[0])) {
                     return ""; // Broken :(
                 }
-                $d .= '  ';
+                $d .= ' ';
                 if (': ' === \substr($r, -2)) {
                     $r = \rtrim($r);
                 }
@@ -409,7 +415,7 @@ namespace x\y_a_m_l\from {
                 if ("" !== $v && false === \strpos(',]}', $v[0])) {
                     return ""; // Broken :(
                 }
-                $d = \substr($d, 0, -2);
+                $d = \substr($d, 0, -1);
                 if ("" !== ($q = q($w = \trim(\strrchr($r = \rtrim($r, "\n"), "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
                 } else if (':' === \substr($w, -1) || false !== \strpos($w, ': ')) {
@@ -562,7 +568,7 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n-\0";
                         continue;
                     }
-                    if ('-' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                    if ('-' === ($v[0] ?? 0) && false !== \strpos(" \0\t", \substr($v, 1, 1))) {
                         $r[$i] .= "\n-\0" . \substr($v, 2);
                         continue;
                     }
@@ -585,7 +591,7 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n: " . \substr($v, 2);
                         continue;
                     }
-                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \0\t", \substr($v, 1, 1))) {
                         $r[++$i] = "?\0" . \substr($v, 2);
                         continue;
                     }
@@ -614,7 +620,6 @@ namespace x\y_a_m_l\from {
                     }
                     $r[$i] .= "\n" . $v;
                     if ("" !== b(\substr($r[$i], \strlen($w) - 1))[0]) {
-                        // echo '<pre style="border:1px solid">'.$r[$i].'</pre>';
                         $i += 1;
                     }
                     continue;
@@ -625,7 +630,6 @@ namespace x\y_a_m_l\from {
                     }
                     $r[$i] .= "\n" . $v;
                     if ("" !== b(\substr($r[$i], \strlen($w) - 1))[0]) {
-                        // echo '<pre style="border:1px solid">'.$r[$i].'</pre>';
                         $i += 1;
                     }
                     continue;
@@ -635,7 +639,15 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n" . $v;
                         continue;
                     }
-                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \t", \substr($v, 1, 1))) {
+                    if ('-' === \trim(c($v))) {
+                        $r[$i] .= "\n-\0";
+                        continue;
+                    }
+                    if ('-' === ($v[0] ?? 0) && false !== \strpos(" \0\t", \substr($v, 1, 1))) {
+                        $r[$i] .= "\n-\0" . \substr($v, 2);
+                        continue;
+                    }
+                    if ('?' === ($v[0] ?? 0) && false !== \strpos(" \0\t", \substr($v, 1, 1))) {
                         $v = "?\0" . \substr($v, 2);
                     }
                     $r[++$i] = $v;
@@ -704,7 +716,7 @@ namespace x\y_a_m_l\from {
             // `!asdf asdf`
             // `&asdf asdf`
             // `*asdf asdf`
-            if (0 !== ($c = $v[0] ?? 0) && false !== \strpos('!&*', $c) && $c !== \strtok($v, " \n\t")) {
+            if (0 !== ($c = $v[0] ?? 0) && false !== \strpos('!&*', $c) && $c !== ($r = \strtok($v, " \n\t"))) {
                 return e($v, $array, $lot);
             }
             // `>\n asdf…`
@@ -738,7 +750,7 @@ namespace x\y_a_m_l\from {
                             $object = true;
                             continue; // Broken :(
                         }
-                        $k = e($q[0]);
+                        $k = k($q[0], $array, $lot);
                         $v = \substr($q[1], 1);
                         if ("\n" === ($v[0] ?? 0)) {
                             $to[$k] = v(d(\substr($v, 1)), $array, $lot);
@@ -761,7 +773,7 @@ namespace x\y_a_m_l\from {
                             $to[$k] = null; // Broken :(
                             continue;
                         }
-                        $to[$k] = e($v, $array, $lot);
+                        $to[$k] = v($v, $array, $lot);
                         continue;
                     }
                     return null; // Broken :(
@@ -774,7 +786,7 @@ namespace x\y_a_m_l\from {
                 foreach (\explode("\n-\0", \substr($v, 2)) as $vv) {
                     // `- "asdf"`
                     // `- 'asdf'`
-                    if ("" !== ($q = q($vv = \strtr(d(\ltrim($vv, "\n")), ["\n  " => "\n"])))[0]) {
+                    if ("" !== ($q = q($vv = d(\ltrim($vv, "\n"), 1)))[0]) {
                         // `- "asdf"…`
                         // `- 'asdf'…`
                         if ('#' === ($q[1][0] ?? 0) || "" !== \trim(c($q[1]))) {
@@ -784,10 +796,6 @@ namespace x\y_a_m_l\from {
                         $r[] = e($q[0], $array, $lot);
                         continue;
                     }
-                    if (false !== \strpos($vv, ":\n-\0")) {
-                        echo '<pre style="border:4px solid green">'.$vv.'</pre>';
-                        $vv = \strtr($vv, ["\n" => "\n  "]);
-                    }
                     $r[] = v($vv, $array, $lot);
                 }
                 return $r;
@@ -795,33 +803,35 @@ namespace x\y_a_m_l\from {
             // `? asdf…`
             if ("?\0" === \substr($v, 0, 2)) {
                 if (false !== ($n = \strpos($v, "\n:")) && false !== \strpos(" \n\t", \substr($v, $n + 2, 1))) {
-                    $k = v(\strtr(\substr($v, 2, $n - 2), ["\n  " => "\n"]), $array, $lot);
-                    $v = v(\strtr(\substr($v, $n + 3), ["\n  " => "\n"]), $array, $lot);
+                    $k = k(d(\substr($v, 2, $n - 2), 1), $array, $lot);
+                    $v = v(d(\substr($v, $n + 3), 1), $array, $lot);
                 } else if (false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1))) {
-                    $k = v(\substr($v, 2, $n - 2), $array, $lot);
+                    $k = k(\substr($v, 2, $n - 2), $array, $lot);
                     $v = v(\substr($v, $n + 2), $array, $lot);
                 } else {
-                    $k = v(\substr($v, 2), $array, $lot);
+                    $k = k(\substr($v, 2), $array, $lot);
                     $v = null;
-                }
-                if (-\INF === $k || -\NAN === $k || \INF === $k || \NAN === $k || \is_array($k) || \is_object($k) || false === $k || null === $k || true === $k) {
-                    $k = "\0" . \serialize($k) . "\0";
                 }
                 $to[$k] = $v;
                 continue;
             }
             // `asdf:`
             if (':' === \substr($v, -1)) {
-                $to[\trim(\substr($v, 0, -1))] = null;
+                if (false !== \strpos($k = \trim(\substr($v, 0, -1)), "\n")) {
+                    $object = true;
+                    continue; // Broken :(
+                }
+                $to[k($k, $array, $lot)] = null;
                 continue;
             }
             // `asdf: …`
-            if (false !== ($n = \strpos($w = \strstr($v . "\n", "\n", true), ":\n") ?: \strpos($w, ":\t") ?: \strpos($w, ': '))) {
+            if (false !== ($n = \strpos($w = \strstr($v . "\n", "\n", true) . "\n", ":\n") ?: \strpos($w, ":\t") ?: \strpos($w, ': '))) {
                 // <https://github.com/nodeca/js-yaml/issues/189>
                 if (false !== \strpos($k = \trim(\substr($v, 0, $n)), "\n")) {
                     $object = true;
                     continue; // Broken :(
                 }
+                $k = k($k, $array, $lot);
                 $v = \substr($v, $n + 1);
                 if ("\n" === ($v[0] ?? 0)) {
                     $to[$k] = v(d(\substr($v, 1)), $array, $lot);
@@ -846,6 +856,11 @@ namespace x\y_a_m_l\from {
                 }
                 $to[$k] = v($v, $array, $lot);
                 continue;
+            }
+            // <https://github.com/nodeca/js-yaml/issues/189>
+            if (false !== (\strpos($v, ":\n") ?: \strpos($v, ":\t") ?: \strpos($v, ': '))) {
+                $object = true;
+                continue; // Broken :(
             }
             return e(d($v), $array, $lot);
         }
