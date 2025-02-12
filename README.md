@@ -437,6 +437,18 @@ $value = from_yaml($value, false, $lot);
 var_dump($lot, $value);
 ~~~
 
+> [!NOTE] Tagged mapping key is not supported:
+>
+> ~~~ yaml
+> # :)
+> asdf: !!str asdf
+> ~~~
+>
+> ~~~ yaml
+> # :(
+> !!str asdf: asdf
+> ~~~
+
 [^2]: To simplify the parsing process, the parser does not care about case sensitivity.
 
 Usage
