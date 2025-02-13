@@ -102,9 +102,9 @@ asdf-4: *asdf
 
 > [!NOTE]
 >
-> This is an experimental feature and I don’t plan to make it official. PHP array does not support storing complex data
-> as its key. Even the [`SplObjectStorage`](https://www.php.net/class.splobjectstorage) and
-> [`WeakMap`](https://www.php.net/class.weakmap) classes do only support object as their key, so this feature will be
+> This is an experimental feature and I have no intention to support it officially. PHP array does not support storing
+> complex data as its key. Even the [`SplObjectStorage`](https://www.php.net/class.splobjectstorage) and
+> [`WeakMap`](https://www.php.net/class.weakmap) classes only support object as their key, so this feature will be
 > impossible to achieve. Current behavior is to convert this complex data into a serialized data. To mark it as a
 > complex key, a `null` character is prepended and appended to it. This does not apply to _float_, _integer_, and
 > _string_ data types:
