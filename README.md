@@ -72,8 +72,10 @@ asdf-4: *asdf
 > This anchor feature only duplicates the values and does not perform proper memory management by linking the anchored
 > values to their aliases as [references](https://www.php.net/manual/en/language.references.return.php), for simplicity
 > [^1].
+
+> [!WARNING]
 >
-> Anchored mapping key is not supported:
+> Anchored mapping key is not supported.
 >
 > ~~~ yaml
 > # :(
@@ -445,9 +447,9 @@ $value = from_yaml($value, false, $lot);
 var_dump($lot, $value);
 ~~~
 
-> [!NOTE]
+> [!WARNING]
 >
-> Tagged mapping key is not supported:
+> Tagged mapping key is not supported.
 >
 > ~~~ yaml
 > # :)
