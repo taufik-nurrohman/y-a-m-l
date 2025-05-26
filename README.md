@@ -21,9 +21,9 @@ my attempt to drive people who need a PHP YAML parser to my content management s
 is apparently not very popular since people seem to be more interested in static site generators these days).
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/taufik-nurrohman/y-a-m-l/assets/1669261/42fd0ad8-2421-4e37-83cc-c1ec456631ec">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/taufik-nurrohman/y-a-m-l/assets/1669261/e8708ad9-1e41-4b1f-94ea-4d8aabb0ded7">
-  <img alt="Why?" src="https://github.com/taufik-nurrohman/y-a-m-l/assets/1669261/e8708ad9-1e41-4b1f-94ea-4d8aabb0ded7">
+  <source media="(prefers-color-scheme: dark)" srcset="2.svg">
+  <source media="(prefers-color-scheme: light)" srcset="1.svg">
+  <img alt="Why?" src="1.svg">
 </picture>
 
 Why should you choose my YAML parser over any other similar YAML parser out there?

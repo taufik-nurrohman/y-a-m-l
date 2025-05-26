@@ -206,7 +206,7 @@ namespace x\y_a_m_l\from {
             $d = \substr($k, 0, $n = \strspn($k, '0123456789'));
             $e = \substr($k, $n);
         }
-        $d = (int) $d;
+        $d = (int) ($d ?: 0);
         $dd = 0;
         $v = \explode("\n", $v);
         foreach ($v as $vv) {
