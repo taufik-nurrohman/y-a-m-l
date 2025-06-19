@@ -43,7 +43,7 @@ namespace x\y_a_m_l\to {
             // `asdf #asdf`
             false !== ($n = \strpos($v, '#')) && false !== \strpos(" \n\t", \substr($v, $n - 1, 1)) ||
             // `asdf: asdf`
-            false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n - 1, 1)) ||
+            false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1)) ||
             // <https://yaml.org/spec/1.2.2#56-miscellaneous-characters>
             // <https://yaml.org/spec/1.2.2#example-invalid-use-of-reserved-indicators>
             false !== \strpos('!"#%&*+,-.:>?@[]`{|}' . "'\\", $v[0]) ||
