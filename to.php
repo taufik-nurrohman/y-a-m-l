@@ -59,6 +59,9 @@ namespace x\y_a_m_l\to {
         }
         return $v;
     }
+    function r(string $v): string {
+        return \preg_replace('/^[ \t]+$/m', "", $v);
+    }
     function v($value, string $dent) {
         if (false === $value) {
             return 'false';
@@ -119,7 +122,7 @@ namespace x\y_a_m_l\to {
                 $value = \wordwrap($value, 120, "\n");
             }
             $v = "" !== $d ? \str_repeat(' ', (int) $d) : "";
-            $value = $v . \preg_replace('/^[ \t]+$/m', "", \strtr($value, [
+            $value = $v . r(\strtr($value, [
                 "\n" => "\n" . $dent . $v
             ]));
             if ("\n" === \substr($value, -1)) {
@@ -151,7 +154,7 @@ namespace x\y_a_m_l\to {
                 if (false !== \strpos('>|', $v[0])) {
                     $short = 6; // Disable flow style value!
                 }
-                $r[] = \preg_replace('/^[ \t]+$/m', "", \strtr($v, [
+                $r[] = r(\strtr($v, [
                     "\n" => "\n  "
                 ]));
             }
@@ -161,14 +164,21 @@ namespace x\y_a_m_l\to {
             }
             return '- ' . \implode("\n- ", $r);
         }
-        if (\is_iterable($value)) {
-            if (\is_object($value) && $value instanceof \stdClass && [] === (array) $value) {
+        if (\is_object($value)) {
+            if ($value instanceof \stdClass && [] === (array) $value) {
                 return '{}';
             }
+            if (\method_exists($value, '__toString')) {
+                return "|-\n" . $dent . r(\trim(\strtr($value->__toString(), [
+                    "\n" => "\n" . $dent
+                ]), "\n"));
+            }
+        }
+        if (\is_iterable($value)) {
             $r = [];
             $short = 0;
             foreach ($value as $k => $v) {
-                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ') . "\n" : q($k));
+                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ') . "\n" : q((string) $k));
                 if (\is_string($v) && ("" === $v || \strlen($v) < 41)) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
@@ -181,7 +191,7 @@ namespace x\y_a_m_l\to {
                     if (false !== \strpos('[{', $v[0])) {
                         $v = ' ' . $v;
                     } else {
-                        $v = \preg_replace('/^[ \t]+$/', "", "\n" . $dent . \strtr($v, [
+                        $v = r("\n" . $dent . \strtr($v, [
                             "\n" => "\n" . $dent
                         ]));
                     }
@@ -200,6 +210,12 @@ namespace x\y_a_m_l\to {
             }
             return "" !== ($value = \implode("\n", $r)) ? $value : null;
         }
-        return q((string) $value);
+        try {
+            return q((string) $value);
+        } catch (\Throwable $e) {
+            return "~\n#! " . r(\strtr((string) $e, [
+                "\n" => "\n#! "
+            ]));
+        }
     }
 }
