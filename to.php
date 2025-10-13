@@ -60,7 +60,11 @@ namespace x\y_a_m_l\to {
         return $v;
     }
     function r(string $v): string {
-        return \preg_replace('/^[ \t]+$/m', "", $v);
+        $r = [];
+        foreach (\explode("\n", $v) as $vv) {
+            $r[] = "" === \trim($vv) ? "" : $vv;
+        }
+        return \implode("\n", $r);
     }
     function v($value, string $dent) {
         if (false === $value) {
