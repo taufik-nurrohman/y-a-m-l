@@ -59,10 +59,10 @@ namespace x\y_a_m_l\to {
         }
         return $v;
     }
-    function r(string $v): string {
+    function r(string $v, string $c = ""): string {
         $r = [];
         foreach (\explode("\n", $v) as $vv) {
-            $r[] = "" === \trim($vv) ? "" : $vv;
+            $r[] = "" === \trim($vv) ? \rtrim($c) : $c . $vv;
         }
         return \implode("\n", $r);
     }
@@ -217,9 +217,7 @@ namespace x\y_a_m_l\to {
         try {
             return q((string) $value);
         } catch (\Throwable $e) {
-            return "~\n#! " . r(\strtr((string) $e, [
-                "\n" => "\n#! "
-            ]));
+            return "~\n" . r((string) $e, '#! ');
         }
     }
 }
