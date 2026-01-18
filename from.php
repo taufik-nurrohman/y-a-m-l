@@ -292,6 +292,9 @@ namespace x\y_a_m_l\from {
                 if ($c === $v) {
                     return ""; // Broken :(
                 }
+                if ('#' === ($v[1] ?? 0)) {
+                    return ""; // Broken :(
+                }
                 $v = \ltrim(\substr(c($v), 1));
                 if ("" !== ($q = q($w = \trim(\strrchr($r, "\n"), " \n\t")))[0] && (':' === \substr($q[1] = \trim($q[1]), -1) || ': ' === \substr($q[1], 0, 2))) {
                     // …
@@ -509,7 +512,7 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 if (('"' === ($c = $w[0] ?? 0) || "'" === $c)) {
-                    if ("" === $v || "" === q($r[$i])) {
+                    if ("" === $v || "" === q($r[$i])[0]) {
                         $r[$i] .= "\n" . $v;
                         continue;
                     }
@@ -633,11 +636,16 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             if ("" !== ($q = q($v))[0]) {
-                if (':' === (($q[1] = \ltrim($q[1]))[0] ?? 0) && false !== \strpos(" \n\t", $s = \substr($q[1], 1, 1))) {
-                    $qq = q(\ltrim(\substr($q[1], 1)));
-                    $v = $q[0] . ':' . $s . $qq[0] . c($qq[1]);
+                // <https://yaml.org/spec/1.2.2#66-comments>
+                if ('#' === ($q[1][0] ?? 0)) {
+                    $v = '~';
                 } else {
-                    $v = $q[0] . c($q[1]);
+                    if (':' === (($q[1] = \ltrim($q[1]))[0] ?? 0) && false !== \strpos(" \n\t", $s = \substr($q[1], 1, 1))) {
+                        $qq = q(\ltrim(\substr($q[1], 1)));
+                        $v = $q[0] . ':' . $s . $qq[0] . c($qq[1]);
+                    } else {
+                        $v = $q[0] . c($q[1]);
+                    }
                 }
             } else {
                 $v = c($v);
@@ -675,6 +683,9 @@ namespace x\y_a_m_l\from {
             // `{asdf…`
             // `|\n asdf…`
             if (0 !== $c && false !== \strpos('>[{|', $c)) {
+                if (false !== ($n = \strpos($w = \strstr($v, "\n", true), '#')) && false === \strpos(" \t", \substr($w, $n - 1, 1))) {
+                    return null; // Broken :(
+                }
                 return e($v, $array, $lot);
             }
             // `"asdf asdf \"asdf\" asdf"`
