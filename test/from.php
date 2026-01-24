@@ -95,7 +95,7 @@ $out .= 'YAML to Data';
 $out .= '</title>';
 $out .= '<style>';
 if (!empty($_GET['c'])) {
-    $out .= <<<CSS
+    $out .= <<<'CSS'
 .c-e,
 .c-n,
 .c-s,

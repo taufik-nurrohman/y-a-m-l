@@ -102,6 +102,35 @@ asdf-4: *asdf
 [ asdf, asdf, asdf, asdf ]
 ~~~
 
+### Document
+
+This converter can now parse YAML input with multiple document sections. This is done with a simple detection of the
+first line. If the first line starts with a `---` followed by a space, a `\n`, or a `\t` character, then the input is
+considered to be made up of multiple document sections.
+
+~~~ yaml
+---
+asdf: asdf
+---
+asdf: asdf
+---
+asdf: asdf
+---
+asdf: asdf
+~~~
+
+> [!NOTE]
+>
+> It can also detect `...` as the end of the document. However, for this converter specifically, it will be treated as
+> the end of the stream instead. Any additional content written after the `...` marker (including that marker) will be
+> completely discarded, regardless of whether it is written in a valid YAML syntax. This is not a bug. This converter
+> was intended specifically as a parser for
+> [Mecha’s pages](https://github.com/orgs/mecha-cms/discussions/302#discussioncomment-15538217).
+>
+> Yes, it does not really comply with
+> [the YAML document syntax specification](https://yaml.org/spec/1.2.2#22-structures). Fortunately, this syntax is
+> almost never used, so it probably won’t cause any harm.
+
 ### Map
 
 ~~~ yaml
@@ -517,7 +546,7 @@ Options
  *
  * @param null|string $value Your YAML string.
  * @param bool $array If this option is set to `true`, PHP object will becomes associative array.
- * @param array $lot Currently used to store anchor(s) and custom tag(s)
+ * @param array $lot Currently used only to store anchor(s) and custom tag(s).
  * @return mixed
  */
 from(?string $value, bool $array = false, array &$lot = []): mixed;
@@ -529,9 +558,10 @@ from(?string $value, bool $array = false, array &$lot = []): mixed;
  *
  * @param mixed $value Your PHP data.
  * @param bool|int|string $dent Specify the indent size or character(s).
+ * @param bool $batch Force the current array input to generate multiple YAML document(s).
  * @return null|string
  */
-to(mixed $value, bool|int|string $dent = true): ?string;
+to(mixed $value, bool|int|string $dent = true, bool $batch = false): ?string;
 ~~~
 
 Tests
@@ -567,29 +597,6 @@ function from_yaml(...$v) {
 function to_yaml(...$v) {
     return x\y_a_m_l\to(...$v);
 }
-~~~
-
-### Document
-
-This converter does not support multiple document feature in one YAML file, but can be supported with a little effort:
-
-~~~ php
-// Ensure line break after `---` and `...`
-$value = preg_replace('/^(-{3}|[.]{3})\s+/m', '$1' . "\n", $value);
-
-// Remove `---\n` prefix if any
-if (0 === strpos($value, "---\n")) {
-    $value = substr($value, 4);
-}
-
-$values = [];
-foreach (explode("\n---\n", $value . "\n") as $v) {
-    // Remove everything after `...`
-    $v = explode("\n...\n", $v . "\n", 2)[0];
-    $values[] = from_yaml($v);
-}
-
-var_dump($values);
 ~~~
 
 ### Variable

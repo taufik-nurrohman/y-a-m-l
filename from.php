@@ -2,6 +2,40 @@
 
 namespace x\y_a_m_l {
     function from(?string $value, $array = false, array &$lot = []) {
+        $value = \strtr(\ltrim($value ?? "", "\n"), [
+            "\r\n" => "\n",
+            "\r" => "\n"
+        ]);
+        if ('---' === \rtrim($value)) {
+            return [null];
+        }
+        if (3 === \strspn($value, '-') && false !== \strpos(" \n\t", $value[3])) {
+            $r = [];
+            $s = null;
+            foreach (\explode("\n", $value) as $v) {
+                if ('---' === \rtrim($v) || 3 === \strspn($v, '-') && false !== \strpos(" \n\t", $v[3])) {
+                    if (null !== $s) {
+                        $r[] = from\v($s, $array, $lot);
+                    }
+                    $s = "";
+                    continue;
+                }
+                if ('...' === \rtrim($v) || 3 === \strspn($v, '.') && false !== \strpos(" \n\t", $v[3])) {
+                    if (null !== $s) {
+                        $r[] = from\v($s, $array, $lot);
+                    }
+                    $s = null;
+                    break;
+                }
+                if (null !== $s) {
+                    $s .= $v . "\n";
+                }
+            }
+            if (null !== $s) {
+                $r[] = from\v($s, $array, $lot);
+            }
+            return $r;
+        }
         return from\v($value, $array, $lot);
     }
 }
@@ -484,17 +518,13 @@ namespace x\y_a_m_l\from {
         }
         return $v;
     }
-    function v(?string $value, $array = false, array &$lot = []) {
-        $from = \strtr(\trim($value ?? "", "\n"), [
-            "\r\n" => "\n",
-            "\r" => "\n"
-        ]);
-        if ("" === ($from = d($from))) {
+    function v(string $value, $array = false, array &$lot = []) {
+        if ("" === ($value = d(\ltrim($value, "\n")))) {
             return null;
         }
         $i = -1;
         $r = [];
-        foreach (\explode("\n", $from) as $v) {
+        foreach (\explode("\n", $value) as $v) {
             $d = \strspn($v, ' ');
             // Part of a block…
             if ($w = $r[$i] ?? 0) {

@@ -1,11 +1,23 @@
 <?php
 
 namespace x\y_a_m_l {
-    function to($value, $dent = true): ?string {
+    function to($value, $dent = true, $batch = false): ?string {
         if (\is_int($dent)) {
             $dent = \str_repeat(' ', $dent > 0 ? $dent : 4);
         } else if (true === $dent || !\is_string($dent)) {
             $dent = \str_repeat(' ', 4);
+        }
+        if ($batch) {
+            if (!\is_array($value) || !to\l($value)) {
+                $r = to\v($value, $dent);
+                return "---" . ("" !== $r && false !== \strpos('>|', $r[0]) ? ' ' : "\n") . $r;
+            }
+            $r = "";
+            foreach ($value as $v) {
+                $v = to\v($v, $dent);
+                $r .= "\n---" . ("" !== $v && false !== \strpos('>|', $v[0]) ? ' ' : "\n") . $v;
+            }
+            return \substr($r, 1);
         }
         return to\v($value, $dent);
     }
