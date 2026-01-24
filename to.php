@@ -8,14 +8,15 @@ namespace x\y_a_m_l {
             $dent = \str_repeat(' ', 4);
         }
         if ($batch) {
+            $t = '!"&*>[{|' . "'";
             if (!\is_array($value) || !to\l($value)) {
                 $r = to\v($value, $dent);
-                return "---" . ("" !== $r && false !== \strpos('>|', $r[0]) ? ' ' : "\n") . $r;
+                return "---" . ("" !== $r && false !== \strpos($t, $r[0]) ? ' ' : "\n") . $r;
             }
             $r = "";
             foreach ($value as $v) {
                 $v = to\v($v, $dent);
-                $r .= "\n---" . ("" !== $v && false !== \strpos('>|', $v[0]) ? ' ' : "\n") . $v;
+                $r .= "\n---" . ("" !== $v && false !== \strpos($t, $v[0]) ? ' ' : "\n") . $v;
             }
             return \substr($r, 1);
         }

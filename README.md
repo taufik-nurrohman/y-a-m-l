@@ -119,6 +119,8 @@ asdf: asdf
 asdf: asdf
 ~~~
 
+And no, it does not support [directives](https://yaml.org/spec/1.2.2#68-directives).
+
 > [!NOTE]
 >
 > It can also detect `...` as the end of the document. However, for this converter specifically, it will be treated as

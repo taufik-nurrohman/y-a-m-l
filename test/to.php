@@ -17,7 +17,7 @@ define('PATH', __DIR__);
 
 require __DIR__ . D . '..' . D . 'to.php';
 
-$test = basename($_GET['test'] ?? 'scalar');
+$batch = 'document' === ($test = basename($_GET['test'] ?? 'scalar'));
 
 $files = glob(__DIR__ . D . 'to' . D . $test . D . '*.php', GLOB_NOSORT);
 
@@ -154,7 +154,7 @@ foreach ($files as $v) {
         $a = $b = "";
         $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
         $start = microtime(true);
-        $content = x\y_a_m_l\to(require $v, 2, 'document' === $test);
+        $content = x\y_a_m_l\to(require $v, 2, $batch);
         $end = microtime(true);
         $a .= strtr(htmlspecialchars($content), [
             "\n" => '<span class="c-n">' . "\n" . '</span>',
