@@ -109,6 +109,7 @@ first line. If the first line starts with a `---` followed by a space, a `\n`, o
 considered to be made up of multiple document sections.
 
 ~~~ yaml
+%YAML 1.2
 ---
 asdf: asdf
 ---
