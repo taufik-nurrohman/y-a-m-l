@@ -867,7 +867,7 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 // `asdf: asdf: asdf`
-                if ("" !== $v && false === \strpos('!&[{', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+                if ("" !== $v && false === \strpos('!&>[{|', $v[0]) && false !== ($n = \strpos($v, ':')) && false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
                     $to[$k] = null; // Broken :(
                     continue;
                 }
