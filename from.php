@@ -6,29 +6,53 @@ namespace x\y_a_m_l {
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
-        if ('---' === \rtrim($value)) {
-            return [null];
-        }
-        if (3 === \strspn($value, '-') && false !== \strpos(" \n\t", $value[3])) {
-            $r = [];
-            $s = null;
-            foreach (\explode("\n", $value) as $v) {
-                if ('---' === \rtrim($v) || 3 === \strspn($v, '-') && false !== \strpos(" \n\t", $v[3])) {
-                    if (null !== $s) {
-                        $r[] = from\v($s, $array, $lot);
-                    }
-                    $s = "";
+        // <https://yaml.org/spec/1.2.2#68-directives>
+        if ($value && false !== \strpos('#%', $value[0]) && false !== \strpos($value, "\n---")) {
+            $max = \strlen($value);
+            $n = 0;
+            while ($n < $max) {
+                if (false === ($x = \strpos($value, "\n", $n))) {
+                    $next = $max;
+                    $v = \substr($value, $n);
+                } else {
+                    $next = $x + 1;
+                    $v = \substr($value, $n, $x - $n);
+                }
+                if ("" === $v || '#' === $v[0] || '%' === $v[0] && \strlen($v) > 1 && false === \strpos(" \t", $v[1])) {
+                    $n = $next;
                     continue;
                 }
-                if ('...' === \rtrim($v) || 3 === \strspn($v, '.') && false !== \strpos(" \n\t", $v[3])) {
+                break;
+            }
+            if (0 !== $n) {
+                $value = \substr($value, $n);
+            }
+        }
+        // <https://yaml.org/spec/1.2.2#912-document-markers>
+        if (0 === \strncmp($value, '---', 3) && (3 === \strlen($value) || false !== \strpos(" \n\t", $value[3]))) {
+            $r = [];
+            $s = null;
+            $start = true;
+            foreach (\explode("\n", $value) as $v) {
+                if ((0 === \strncmp($v, '---', 3) || 0 === \strncmp($v, '...', 3)) && (3 === \strlen($v) || false !== \strpos(" \t", $v[3]))) {
                     if (null !== $s) {
                         $r[] = from\v($s, $array, $lot);
                     }
-                    $s = null;
-                    break;
+                    $s = '-' === $v[0] ? "" : null;
+                    $start = true;
+                    continue;
                 }
                 if (null !== $s) {
+                    // <https://yaml.org/spec/1.2.2#68-directives>
+                    if ($start && \strlen($v) > 1 && '%' === $v[0] && false === \strpos(" \t", $v[1])) {
+                        continue;
+                    }
                     $s .= $v . "\n";
+                    $start = false;
+                } else {
+                    if ($v && false === \strpos('#%', $v[0])) {
+                        break;
+                    }
                 }
             }
             if (null !== $s) {
@@ -101,19 +125,20 @@ namespace x\y_a_m_l\from {
         if ("" === $v) {
             return null;
         }
-        if ('!' === $v[0] && '!' !== ($k = \strtok($v, " \n\t"))) {
+        $k = \substr($v, 0, \strcspn($v, " \n\t"));
+        if ('!' === $v[0] && '!' !== $k) {
             $v = v(d($w = \trim(\substr($v, \strlen($k) + 1), "\n")), $array, $lot);
             if ('!!str' === $k && !isset($lot[$k]) && $v instanceof \DateTimeInterface) {
                 return $w;
             }
             return t($v, $k, $array, $lot);
         }
-        if ('&' === $v[0] && '&' !== ($k = \strtok($v, " \n\t"))) {
+        if ('&' === $v[0] && '&' !== $k) {
             $v = \substr($v, \strlen($k) + 1);
             $lot[$k] = $v = v(d($v), $array, $lot);
             return $v;
         }
-        if ('*' === $v[0] && '*' !== ($k = \strtok($v, " \n\t"))) {
+        if ('*' === $v[0] && '*' !== $k) {
             return $lot['&' . \substr($k, 1)] ?? null;
         }
         if (\array_key_exists($k = \strtolower($v), $a = [
@@ -618,7 +643,7 @@ namespace x\y_a_m_l\from {
                     }
                     continue;
                 }
-                if (':' === \substr(\trim(\strtok($w, '!&*')), -1)) {
+                if (':' === \substr(\trim(\substr($w, 0, \strcspn($w, '!&*'))), -1)) {
                     if ($d) {
                         $r[$i] .= "\n" . $v;
                         continue;
@@ -705,7 +730,7 @@ namespace x\y_a_m_l\from {
             // `!asdf asdf`
             // `&asdf asdf`
             // `*asdf asdf`
-            if (0 !== ($c = $v[0] ?? 0) && false !== \strpos('!&*', $c) && $c !== ($r = \strtok($v, " \n\t"))) {
+            if (0 !== ($c = $v[0] ?? 0) && false !== \strpos('!&*', $c) && $c !== \substr($v, 0, \strcspn($v, " \n\t"))) {
                 return e($v, $array, $lot);
             }
             // `>\n asdf…`

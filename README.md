@@ -29,8 +29,8 @@ is apparently not very popular since people seem to be more interested in static
 Why should you choose my YAML parser over any other similar YAML parser out there?
 
  - [mustangostang/spyc](https://github.com/mustangostang/spyc) consists of one PHP file which is 35.1 KB in size and
-   contains a total of 1186 lines of code [since the time of writing][1]. It is out of date (only supports YAML 1.0 and
-   is buggy [in][2] [various][3] [cases][4]) and is still comparatively bigger than my YAML parser.
+   contains a total of 1186 lines of code [since the time of writing][1]. It is out of date, only supports YAML 1.0 and
+   is buggy [in][2] [various][3] [cases][4].
  - [symfony/yaml](https://github.com/symfony/yaml) prioritizes reliability and stability for use in large-scale
    applications. This library contains a lot of dependencies that will make your application overly bloated if your main
    goal is simply to convert YAML syntax to PHP data.
@@ -118,20 +118,6 @@ asdf: asdf
 ---
 asdf: asdf
 ~~~
-
-And no, it does not support [directives](https://yaml.org/spec/1.2.2#68-directives).
-
-> [!NOTE]
->
-> It can also detect `...` as the end of the document. However, for this converter specifically, it will be treated as
-> the end of the stream instead. Any additional content written after the `...` marker (including that marker) will be
-> completely discarded, regardless of whether it is written in a valid YAML syntax. This is not a bug. This converter
-> was intended specifically as a parser for
-> [Mecha’s pages](https://github.com/orgs/mecha-cms/discussions/302#discussioncomment-15538217).
->
-> Yes, it does not really comply with
-> [the YAML document syntax specification](https://yaml.org/spec/1.2.2#22-structures). Fortunately, this syntax is
-> almost never used, so it probably won’t cause any harm.
 
 ### Map
 

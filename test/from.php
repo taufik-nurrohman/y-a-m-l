@@ -262,7 +262,9 @@ foreach ($files as $v) {
             // file_put_contents($f, $content);
             $error = false; // No test file to compare
         }
-        $out .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b . '</div>';
+        $out .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b;
+        // $out .= '<pre><code>' . json_encode($lot, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</code></pre>';
+        $out .= '</div>';
     }
     $out .= '</div>';
     $time = round(($end - $start) * 1000, 2);

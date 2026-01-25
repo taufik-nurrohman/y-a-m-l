@@ -1,0 +1,19 @@
+%YAML 1.1
+---
+asdf: asdf
+...
+
+# asdf
+%TAG !asdf! 1
+%TAG !asdf! 2
+%YAML 1.2
+---
+asdf: asdf
+...
+
+# asdf
+%TAG !asdf! 3
+%TAG !asdf! 4
+%YAML 1.2
+---
+asdf: asdf
