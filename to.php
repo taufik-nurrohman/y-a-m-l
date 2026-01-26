@@ -10,13 +10,13 @@ namespace x\y_a_m_l {
         if ($batch) {
             $t = '!"&*>[{|' . "'";
             if (!\is_array($value) || !to\l($value)) {
-                $r = to\v($value, $dent);
-                return "---" . ("" !== $r && false !== \strpos($t, $r[0]) ? ' ' : "\n") . $r;
+                $value = to\v($value, $dent);
+                return "---" . ("" !== $value && \strspn($value, $t) ? ' ' : "\n") . $value;
             }
             $r = "";
             foreach ($value as $v) {
                 $v = to\v($v, $dent);
-                $r .= "\n---" . ("" !== $v && false !== \strpos($t, $v[0]) ? ' ' : "\n") . $v;
+                $r .= "\n---" . ("" !== $v && \strspn($v, $t) ? ' ' : "\n") . $v;
             }
             return \substr($r, 1);
         }
@@ -54,20 +54,20 @@ namespace x\y_a_m_l\to {
             // `asdf:`
             ':' === \substr($v, -1) ||
             // `asdf #asdf`
-            false !== ($n = \strpos($v, '#')) && false !== \strpos(" \n\t", \substr($v, $n - 1, 1)) ||
+            false !== ($n = \strpos($v, '#')) && \strspn($v, " \n\t", $n - 1) ||
             // `asdf: asdf`
-            false !== ($n = \strpos($v, ':')) && false !== \strpos(" \n\t", \substr($v, $n + 1, 1)) ||
+            false !== ($n = \strpos($v, ':')) && \strspn($v, " \n\t", $n + 1) ||
             // <https://yaml.org/spec/1.2.2#56-miscellaneous-characters>
             // <https://yaml.org/spec/1.2.2#example-invalid-use-of-reserved-indicators>
-            false !== \strpos('!"#%&*+,-.:>?@[]`{|}' . "'\\", $v[0]) ||
-            false !== \strpos(',false,null,true,~,', ',' . \strtolower($v) . ',') ||
-            \strlen($v) !== \strcspn($v, "<=>[\\]{|}")
+            \strspn($v, '!"#%&*+,-.:>?@[]`{|}' . "'\\") ||
+            \strcspn($v, "<=>[\\]{|}") !== \strlen($v) ||
+            false !== \strpos(',false,null,true,~,', ',' . \strtolower($v) . ',')
         ) {
             return "'" . \strtr($v, [
                 "'" => "''"
             ]) . "'";
         }
-        if (false !== \strpos("\n\t", $v[0]) || false !== \strpos("\n\t", \substr($v, -1)) || $v !== \addcslashes($v, "\\")) {
+        if (\strspn($v, "\n\t") || \strspn($v, "\n\t", -1) || $v !== \addcslashes($v, "\\")) {
             return \json_encode($v);
         }
         return $v;
@@ -108,11 +108,11 @@ namespace x\y_a_m_l\to {
         if (\is_string($raw = $value)) {
             if ("" !== $value && false !== \strpos($value, "\0")) {
                 $value = \base64_encode($value);
-                // `120 - strlen('!!binary ')`
-                if (\strlen($value) <= 111) {
+                // `120 - strlen('!!binary ') - strlen($dent)`
+                if (\strlen($value) <= 111 - ($x = \strlen($dent))) {
                     return '!!binary ' . $value;
                 }
-                return "!!binary |\n" . $dent . \rtrim(\chunk_split($value, 120, "\n" . $dent));
+                return "!!binary |\n" . $dent . \rtrim(\chunk_split($value, 120 - $x, "\n" . $dent));
             }
             $d = 0;
             $flow = false;
@@ -134,16 +134,16 @@ namespace x\y_a_m_l\to {
             } else {
                 $d = "";
             }
-            if ('>' === $style && \strlen($value) > 120) {
+            if ('>' === $style && \strlen($value) > 120 - ($x = \strlen($dent))) {
                 $flow = true;
-                $value = \wordwrap($value, 120, "\n");
+                $value = \wordwrap($value, 120 - $x, "\n");
             }
             $v = "" !== $d ? \str_repeat(' ', (int) $d) : "";
             $value = $v . r(\strtr($value, [
                 "\n" => "\n" . $dent . $v
             ]));
             if ("\n" === \substr($value, -1)) {
-                if (false !== \strpos(" \n\t", \substr($value, -2, 1))) {
+                if (\strspn($value, " \n\t", -2)) {
                     return $style . '+' . $d . "\n" . $dent . $value;
                 }
                 return $style . $d . "\n" . $dent . $value;
@@ -168,7 +168,7 @@ namespace x\y_a_m_l\to {
                     $short = 6; // Disable flow style value!
                 }
                 $v = v($v, $dent);
-                if (false !== \strpos('>|', $v[0])) {
+                if (\strspn($v, '>|')) {
                     $short = 6; // Disable flow style value!
                 }
                 $r[] = r(\strtr($v, [
@@ -205,7 +205,7 @@ namespace x\y_a_m_l\to {
                 }
                 if (\is_iterable($v)) {
                     $v = v($v, $dent);
-                    if (false !== \strpos('[{', $v[0])) {
+                    if (\strspn($v, '[{')) {
                         $v = ' ' . $v;
                     } else {
                         $v = r("\n" . $dent . \strtr($v, [
