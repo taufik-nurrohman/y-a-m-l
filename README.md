@@ -105,8 +105,9 @@ asdf-4: *asdf
 ### Document
 
 This converter can now parse YAML input with multiple document sections. This is done with a simple detection of the
-first line. If the first line starts with a `---` followed by a space, a `\n`, or a `\t` character, then the input is
-considered to be made up of multiple document sections.
+first line. If the first line starts with `---` followed by a space, a `\n` character, or a `\t` character, or starts
+with a `#` or `%` character and some-where after it also contains `\n---`, then the input is considered to be made up of
+multiple document sections.
 
 ~~~ yaml
 %YAML 1.2
