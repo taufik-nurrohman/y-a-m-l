@@ -79,7 +79,7 @@ namespace x\y_a_m_l\to {
         }
         return \implode("\n", $r);
     }
-    function v($value, string $dent) {
+    function v($value, string $dent, int $level = 1) {
         if (false === $value) {
             return 'false';
         }
@@ -106,13 +106,13 @@ namespace x\y_a_m_l\to {
             return $value->format('c');
         }
         if (\is_string($raw = $value)) {
+            $max = \max(60, 120 - (\strlen($dent) * $level + 1));
             if ("" !== $value && false !== \strpos($value, "\0")) {
                 $value = \base64_encode($value);
-                // `120 - strlen('!!binary ') - strlen($dent)`
-                if (\strlen($value) <= 111 - ($x = \strlen($dent))) {
+                if (\strlen($value) <= $max) {
                     return '!!binary ' . $value;
                 }
-                return "!!binary |\n" . $dent . \rtrim(\chunk_split($value, 120 - $x, "\n" . $dent));
+                return "!!binary |\n" . $dent . \rtrim(\chunk_split($value, $max, "\n" . $dent));
             }
             $d = 0;
             $flow = false;
@@ -134,9 +134,9 @@ namespace x\y_a_m_l\to {
             } else {
                 $d = "";
             }
-            if ('>' === $style && \strlen($value) > 120 - ($x = \strlen($dent))) {
+            if ('>' === $style && \strlen($value) > $max) {
                 $flow = true;
-                $value = \wordwrap($value, 120 - $x, "\n");
+                $value = \wordwrap($value, $max, "\n");
             }
             $v = "" !== $d ? \str_repeat(' ', (int) $d) : "";
             $value = $v . r(\strtr($value, [
@@ -167,7 +167,7 @@ namespace x\y_a_m_l\to {
                 } else {
                     $short = 6; // Disable flow style value!
                 }
-                $v = v($v, $dent);
+                $v = v($v, $dent, $level);
                 if (\strspn($v, '>|')) {
                     $short = 6; // Disable flow style value!
                 }
@@ -195,7 +195,7 @@ namespace x\y_a_m_l\to {
             $r = [];
             $short = 0;
             foreach ($value as $k => $v) {
-                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ') . "\n" : q((string) $k));
+                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ', $level) . "\n" : q((string) $k));
                 if (\is_string($v) && ("" === $v || \strlen($v) < 41)) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
@@ -204,7 +204,7 @@ namespace x\y_a_m_l\to {
                     $short = 4; // Disable flow style value!
                 }
                 if (\is_iterable($v)) {
-                    $v = v($v, $dent);
+                    $v = v($v, $dent, $level + 1);
                     if (\strspn($v, '[{')) {
                         $v = ' ' . $v;
                     } else {
@@ -215,7 +215,7 @@ namespace x\y_a_m_l\to {
                     $r[] = $k . ':' . $v;
                     continue;
                 }
-                if ('~' === ($v = v($v, $dent)) && '?' === ($k[0] ?? 0)) {
+                if ('~' === ($v = v($v, $dent, $level)) && '?' === ($k[0] ?? 0)) {
                     $r[] = \substr($k, 0, -1);
                     continue;
                 }
