@@ -122,7 +122,7 @@ namespace x\y_a_m_l\from {
         return $v;
     }
     function e(string $v, $array = false, array &$lot = []) {
-        if ("" === $v) {
+        if ("" === ($v = \rtrim($raw = $v))) {
             return null;
         }
         $k = \substr($v, 0, \strcspn($v, " \n\t"));
@@ -212,7 +212,7 @@ namespace x\y_a_m_l\from {
             return v($v, $array, $lot);
         }
         if (\strspn($v, '>|')) {
-            return f($v);
+            return f($raw);
         }
         if (\strlen($n = \strtolower($v)) > 2 && '0' === $n[0]) {
             // Octal
@@ -562,6 +562,9 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n";
                         continue;
                     }
+                }
+                if ("" === c($v)) {
+                    $r[$i] .= "\n";
                     continue;
                 }
                 if (('"' === ($c = $w[0] ?? 0) || "'" === $c)) {
