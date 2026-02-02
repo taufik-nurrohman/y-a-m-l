@@ -315,13 +315,13 @@ namespace x\y_a_m_l\from {
                     $r .= "\n";
                     continue;
                 }
-                if (($dd = \strspn($vv, ' ')) >= $d) {
+                if (\strspn($vv, ' ') >= $d) {
                     $vv = \substr($vv, $d);
                 }
                 $r .= "\n" . $vv;
             }
         }
-        $r = \substr($r, 1);
+        $r = \ltrim(\substr($r, 1), "\n");
         return '+' === $e ? $r : ('-' === $e ? \rtrim($r) : ("\n" === \substr($r, -1) ? \rtrim($r) . "\n" : $r));
     }
     function k(string $k, $array = false, array &$lot = []) {
@@ -562,7 +562,6 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n";
                         continue;
                     }
-                    $r[++$i] = $v;
                     continue;
                 }
                 if (('"' === ($c = $w[0] ?? 0) || "'" === $c)) {
@@ -570,9 +569,6 @@ namespace x\y_a_m_l\from {
                         $r[$i] .= "\n" . $v;
                         continue;
                     }
-                }
-                if ("" === c($v)) {
-                    continue;
                 }
                 if ("-\0" === \substr($w, 0, 2)) {
                     $last = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n-\0") + 2), " \n\t");
