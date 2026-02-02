@@ -1,3 +1,3 @@
 <?php
 
-return '> asdf';
+return null;

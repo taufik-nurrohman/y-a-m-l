@@ -2,7 +2,7 @@
 
 namespace x\y_a_m_l {
     function from(?string $value, $array = false, array &$lot = []) {
-        $value = \strtr(\ltrim($value ?? "", "\n"), [
+        $value = \strtr(\trim($value ?? "", "\n"), [
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
@@ -36,7 +36,7 @@ namespace x\y_a_m_l {
             foreach (\explode("\n", $value) as $v) {
                 if ((0 === \strncmp($v, '---', 3) || 0 === \strncmp($v, '...', 3)) && (3 === \strlen($v) || \strspn($v, " \t", 3))) {
                     if (null !== $s) {
-                        $r[] = from\v(\rtrim($s, "\n"), $array, $lot);
+                        $r[] = from\v(\trim($s, "\n"), $array, $lot);
                     }
                     $s = '-' === $v[0] ? "" : null;
                     $start = true;
@@ -50,13 +50,13 @@ namespace x\y_a_m_l {
                     $s .= $v . "\n";
                     $start = false;
                 } else {
-                    if ($v && \strcspn($v, '#%')) {
+                    if ($v && 0 !== \strcspn($v, '#%')) {
                         break;
                     }
                 }
             }
             if (null !== $s) {
-                $r[] = from\v(\rtrim($s, "\n"), $array, $lot);
+                $r[] = from\v(\trim($s, "\n"), $array, $lot);
             }
             return $r;
         }
@@ -66,39 +66,38 @@ namespace x\y_a_m_l {
 
 namespace x\y_a_m_l\from {
     function b(string $v) {
-        $stack = "";
-        while ("" !== $v) {
-            if ($n = \strcspn($v, '"' . "'" . '#[]{}')) {
-                $v = \substr($v, $n);
-            }
-            if (('"' === ($c = $v[0] ?? 0) || "'" === $c) && "" !== ($q = q($v))[0]) {
-                $v = \substr($v, \strlen($q[0]));
+        $max = \strlen($v);
+        $stack = [];
+        for ($i = 0; $i < $max; ++$i) {
+            $c = $v[$i];
+            if ($c === '"' || $c === "'") {
+                if ("" !== ($q = q(\substr($v, $i)))[0]) {
+                    $i += \strlen($q[0]) - 1;
+                }
                 continue;
             }
             if ('#' === $c) {
-                if (false === ($n = \strpos($v, "\n"))) {
+                if (false === ($n = \strpos($v, "\n", $i))) {
                     break;
                 }
-                $v = \substr($v, $n + 1);
+                $i = $n;
                 continue;
             }
             if ('[' === $c || '{' === $c) {
-                $stack .= $c;
-                $v = \substr($v, 1);
+                $stack[] = $c;
                 continue;
             }
             if (']' === $c || '}' === $c) {
-                if (']' === $c && '[' !== \substr($stack, -1) || '}' === $c && '{' !== \substr($stack, -1)) {
-                    return false; // Broken :(
+                $z = \array_pop($stack);
+                if (']' === $c && '[' !== $z || '}' === $c && '{' !== $z) {
+                    return false;
                 }
-                $stack = \substr($stack, 0, -1);
-                $v = \substr($v, 1);
-                if ("" === $stack) {
+                if (!$stack) {
                     break;
                 }
             }
         }
-        return "" === $stack;
+        return !$stack;
     }
     function c(string $v) {
         if (0 === ($n = \strpos($v, '#'))) {
@@ -250,8 +249,8 @@ namespace x\y_a_m_l\from {
     }
     // <https://yaml.org/spec/1.2.2#81-block-scalar-styles>
     function f(string $v) {
-        if (false === ($n = \strpos($r = \rtrim($v, "\n"), "\n"))) {
-            return $r;
+        if (false === ($n = \strpos(\rtrim($v), "\n"))) {
+            return null; // Broken :(
         }
         $k = \trim(\substr($v, 0, $n));
         $q = $k[0];
@@ -569,12 +568,6 @@ namespace x\y_a_m_l\from {
                     }
                 }
                 if ("-\0" === \substr($w, 0, 2)) {
-                    // $z = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n-\0") + 2), " \n\t");
-                    // echo '<pre style="border:1px solid red">'.$z.'</pre>';
-                    // if (('"' === ($c = $z[0] ?? 0) || "'" === $c) && "" === q($z)[0]) {
-                    //     $r[$i] .= $v . "\n";
-                    //     continue;
-                    // }
                     if ('-' === \trim(c($v))) {
                         $r[$i] .= "-\0\n";
                         continue;
@@ -589,11 +582,6 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 if ("?\0" === \substr($w, 0, 2)) {
-                    // $z = \trim(\substr($r[$i], \strrpos("\n" . $r[$i], "\n?\0") + 2), " \n\t");
-                    // if (('"' === ($c = $z[0] ?? 0) || "'" === $c) && "" === q($z)[0]) {
-                    //     $r[$i] .= $v . "\n";
-                    //     continue;
-                    // }
                     if (':' === \trim(c($v))) {
                         $r[$i] .= ":\n";
                         continue;
@@ -627,13 +615,13 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 $w = \trim(c($w));
-                if ('[' === $w || ('[' === \substr($w, -1) && \strspn($w, " \t", -2) && ':' === \trim(\substr($w, -3, 1)))) {
+                if ('[' === $w || (($n = \strpos($w, '[')) > 0 && 1 === \strspn($w, " \t", $n - 1, 1) && false !== \strpos(\substr($w, 0, $n), ':'))) {
                     if (b(\substr($r[$i] .= $v . "\n", \strlen($w) - 1))) {
                         $i += 1;
                     }
                     continue;
                 }
-                if ('{' === $w || ('{' === \substr($w, -1) && \strspn($w, " \t", -2) && ':' === \trim(\substr($w, -3, 1)))) {
+                if ('{' === $w || (($n = \strpos($w, '{')) > 0 && 1 === \strspn($w, " \t", $n - 1, 1) && false !== \strpos(\substr($w, 0, $n), ':'))) {
                     if (b(\substr($r[$i] .= $v . "\n", \strlen($w) - 1))) {
                         $i += 1;
                     }
@@ -722,12 +710,12 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             // <https://yaml.org/spec/1.2.2#741-flow-sequences>
-            if ('[' === $v || ('[' === \substr($v, -1) && \strspn($v, " \t", -2) && ':' === \trim(\substr($v, -3, 1)))) {
+            if ('[' === $v || (($n = \strpos($v, '[')) > 0 && 1 === \strspn($v, " \t", $n - 1, 1) && false !== \strpos(\substr($v, 0, $n), ':'))) {
                 $r[++$i] = $v . "\n";
                 continue;
             }
             // <https://yaml.org/spec/1.2.2#742-flow-mappings>
-            if ('{' === $v || ('{' === \substr($v, -1) && \strspn($v, " \t", -2) && ':' === \trim(\substr($v, -3, 1)))) {
+            if ('{' === $v || (($n = \strpos($v, '{')) > 0 && 1 === \strspn($v, " \t", $n - 1, 1) && false !== \strpos(\substr($v, 0, $n), ':'))) {
                 $r[++$i] = $v . "\n";
                 continue;
             }
