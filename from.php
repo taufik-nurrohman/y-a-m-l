@@ -643,7 +643,8 @@ namespace x\y_a_m_l\from {
                     if ('?' === ($v[0] ?? 0) && \strspn($v, " \0\t", 1)) {
                         $v = "?\0" . \substr($v, 2);
                     }
-                    if ("" === c($v)) {
+                    if ("" === ($v = c($v))) {
+                        $r[$i] .= "\n";
                         continue;
                     }
                     $r[++$i] = $v . "\n";
@@ -671,6 +672,7 @@ namespace x\y_a_m_l\from {
                         $v = "?\0" . \substr($v, 2);
                     }
                     if ("" === ($v = c($v))) {
+                        $r[$i] .= "\n";
                         continue;
                     }
                     $r[++$i] = $v . "\n";
