@@ -1,3 +1,3 @@
 <?php
 
-return (object) array();
+return null;

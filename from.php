@@ -36,7 +36,7 @@ namespace x\y_a_m_l {
             foreach (\explode("\n", $value) as $v) {
                 if ((0 === \strncmp($v, '---', 3) || 0 === \strncmp($v, '...', 3)) && (3 === \strlen($v) || \strspn($v, " \t", 3))) {
                     if (null !== $s) {
-                        $r[] = from\v(\trim($s, "\n"), $array, $lot);
+                        $r[] = from\v($s, $array, $lot);
                     }
                     $s = '-' === $v[0] ? "" : null;
                     $start = true;
@@ -56,7 +56,7 @@ namespace x\y_a_m_l {
                 }
             }
             if (null !== $s) {
-                $r[] = from\v(\trim($s, "\n"), $array, $lot);
+                $r[] = from\v($s, $array, $lot);
             }
             return $r;
         }
@@ -615,13 +615,13 @@ namespace x\y_a_m_l\from {
                     continue;
                 }
                 $w = \trim(c($w));
-                if ('[' === $w || (($n = \strpos($w, '[')) > 0 && 1 === \strspn($w, " \t", $n - 1, 1) && false !== \strpos(\substr($w, 0, $n), ':'))) {
+                if ('[' === ($w[0] ?? 0) || (($n = \strpos($w, '[')) > 0 && 1 === \strspn($w, " \t", $n - 1, 1) && false !== \strpos(\substr($w, 0, $n), ':')) && !b($w)) {
                     if (b(\substr($r[$i] .= $v . "\n", \strlen($w) - 1))) {
                         $i += 1;
                     }
                     continue;
                 }
-                if ('{' === $w || (($n = \strpos($w, '{')) > 0 && 1 === \strspn($w, " \t", $n - 1, 1) && false !== \strpos(\substr($w, 0, $n), ':'))) {
+                if ('{' === ($w[0] ?? 0) || (($n = \strpos($w, '{')) > 0 && 1 === \strspn($w, " \t", $n - 1, 1) && false !== \strpos(\substr($w, 0, $n), ':')) && !b($w)) {
                     if (b(\substr($r[$i] .= $v . "\n", \strlen($w) - 1))) {
                         $i += 1;
                     }
@@ -670,13 +670,13 @@ namespace x\y_a_m_l\from {
                     if ('?' === ($v[0] ?? 0) && \strspn($v, " \0\t", 1)) {
                         $v = "?\0" . \substr($v, 2);
                     }
+                    if ("" === ($v = c($v))) {
+                        continue;
+                    }
                     $r[++$i] = $v . "\n";
                     continue;
                 }
-                if ("" === c($v)) {
-                    continue;
-                }
-                $r[$i] .= $v . "\n";
+                $r[$i] .= c($v) . "\n";
                 continue;
             }
             // Start of a block…
@@ -710,20 +710,17 @@ namespace x\y_a_m_l\from {
                 continue;
             }
             // <https://yaml.org/spec/1.2.2#741-flow-sequences>
-            if ('[' === $v || (($n = \strpos($v, '[')) > 0 && 1 === \strspn($v, " \t", $n - 1, 1) && false !== \strpos(\substr($v, 0, $n), ':'))) {
+            if ('[' === ($v[0] ?? 0) || (($n = \strpos($v, '[')) > 0 && 1 === \strspn($v, " \t", $n - 1, 1) && false !== \strpos(\substr($v, 0, $n), ':'))) {
                 $r[++$i] = $v . "\n";
                 continue;
             }
             // <https://yaml.org/spec/1.2.2#742-flow-mappings>
-            if ('{' === $v || (($n = \strpos($v, '{')) > 0 && 1 === \strspn($v, " \t", $n - 1, 1) && false !== \strpos(\substr($v, 0, $n), ':'))) {
+            if ('{' === ($v[0] ?? 0) || (($n = \strpos($v, '{')) > 0 && 1 === \strspn($v, " \t", $n - 1, 1) && false !== \strpos(\substr($v, 0, $n), ':'))) {
                 $r[++$i] = $v . "\n";
                 continue;
             }
             $r[++$i] = c($v) . "\n";
         }
-        // foreach ($r as $v) {
-        //     echo '<pre style="border:2px solid">' . htmlspecialchars($v) . '</pre>';
-        // }
         $to = [];
         foreach ($r as $v) {
             // `!asdf asdf`
@@ -875,11 +872,10 @@ namespace x\y_a_m_l\from {
             }
             // <https://github.com/nodeca/js-yaml/issues/189>
             if (false !== (\strpos($v, ":\n") ?: \strpos($v, ":\t") ?: \strpos($v, ': '))) {
-                $object = true;
                 continue; // Broken :(
             }
             return e(d($v), $array, $lot);
         }
-        return $to || isset($object) ? ($array ? $to : (object) $to) : null;
+        return $to ? ($array ? $to : (object) $to) : null;
     }
 }
