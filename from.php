@@ -762,7 +762,6 @@ namespace x\y_a_m_l\from {
                     if (':' === (($q[1] = \ltrim($q[1]))[0] ?? 0) && \strspn($q[1], " \n\t", 1)) {
                         // <https://github.com/nodeca/js-yaml/issues/189>
                         if (false !== \strpos($q[0], "\n")) {
-                            $object = true;
                             continue; // Broken :(
                         }
                         $k = k($q[0], $array, $lot);
@@ -833,7 +832,6 @@ namespace x\y_a_m_l\from {
             // `asdf:`
             if (':' === \substr($v, -1)) {
                 if (false !== \strpos($k = \trim(\substr($v, 0, -1)), "\n")) {
-                    $object = true;
                     continue; // Broken :(
                 }
                 $to[k($k, $array, $lot)] = null;
@@ -843,7 +841,6 @@ namespace x\y_a_m_l\from {
             if (false !== ($n = \strpos($w = \strstr($v . "\n", "\n", true) . "\n", ":\n") ?: \strpos($w, ":\t") ?: \strpos($w, ': '))) {
                 // <https://github.com/nodeca/js-yaml/issues/189>
                 if (false !== \strpos($k = \trim(\substr($v, 0, $n)), "\n")) {
-                    $object = true;
                     continue; // Broken :(
                 }
                 $k = k($k, $array, $lot);
