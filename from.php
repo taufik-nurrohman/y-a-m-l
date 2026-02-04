@@ -38,7 +38,7 @@ namespace x\y_a_m_l {
                     if (null !== $s) {
                         $r[] = from\v($s, $array, $lot);
                     }
-                    $s = '-' === $v[0] ? "" : null;
+                    $s = '-' === $v[0] ? \ltrim(\substr($v, 3)) . "\n" : null;
                     $start = true;
                     continue;
                 }
