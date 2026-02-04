@@ -455,7 +455,7 @@ namespace x\y_a_m_l\from {
         if ("" === \trim($r)) {
             return '[' === $b ? '[]' : '{}';
         }
-        return d(\trim(\rtrim($r), "\n"));
+        return d(\rtrim(\trim($r, "\n")));
     }
     function q(string $v) {
         // `""…`
