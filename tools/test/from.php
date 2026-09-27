@@ -15,7 +15,7 @@ date_default_timezone_set('Asia/Jakarta');
 define('D', DIRECTORY_SEPARATOR);
 define('PATH', __DIR__);
 
-require __DIR__ . D . '..' . D . 'from.php';
+require __DIR__ . D . '..' . D . '..' . D . 'from.php';
 
 $test = basename($_GET['test'] ?? 'scalar');
 $view = $_GET['view'] ?? 'php';
@@ -86,16 +86,16 @@ function php_export($value, $d = "", $key_as_string = false, $is_object = null) 
     return $value;
 }
 
-$out = '<!DOCTYPE html>';
-$out .= '<html dir="ltr">';
-$out .= '<head>';
-$out .= '<meta charset="utf-8">';
-$out .= '<title>';
-$out .= 'YAML to Data';
-$out .= '</title>';
-$out .= '<style>';
+$s = '<!DOCTYPE html>';
+$s .= '<html dir="ltr">';
+$s .= '<head>';
+$s .= '<meta charset="utf-8">';
+$s .= '<title>';
+$s .= 'YAML to Data';
+$s .= '</title>';
+$s .= '<style>';
 if (!empty($_GET['c'])) {
-    $out .= <<<'CSS'
+    $s .= <<<'CSS'
 .c-e,
 .c-n,
 .c-s,
@@ -149,94 +149,94 @@ if (!empty($_GET['c'])) {
 }
 CSS;
 }
-$out .= '</style>';
-$out .= '</head>';
-$out .= '<body>';
+$s .= '</style>';
+$s .= '</head>';
+$s .= '<body>';
 
-$out .= '<form method="get">';
+$s .= '<form method="get">';
 
-$out .= '<fieldset>';
-$out .= '<legend>';
-$out .= 'Navigation';
-$out .= '</legend>';
-$out .= '<a href="to.php">Data to YAML</a>';
-$out .= '</fieldset>';
+$s .= '<fieldset>';
+$s .= '<legend>';
+$s .= 'Navigation';
+$s .= '</legend>';
+$s .= '<a href="to.php">Data to YAML</a>';
+$s .= '</fieldset>';
 
-$out .= '<fieldset>';
-$out .= '<legend>';
-$out .= 'Filter';
-$out .= '</legend>';
-$out .= '<button' . ('*' === $test ? ' disabled' : "") . ' name="test" type="submit" value="*">';
-$out .= '*';
-$out .= '</button>';
+$s .= '<fieldset>';
+$s .= '<legend>';
+$s .= 'Filter';
+$s .= '</legend>';
+$s .= '<button' . ('*' === $test ? ' disabled' : "") . ' name="test" type="submit" value="*">';
+$s .= '*';
+$s .= '</button>';
 foreach (glob(__DIR__ . D . 'from' . D . '*', GLOB_ONLYDIR) as $v) {
-    $out .= ' ';
-    $out .= '<button' . ($test === ($n = basename($v)) ? ' disabled' : "") . ' name="test" type="submit" value="' . htmlspecialchars($n) . '">';
-    $out .= htmlspecialchars($n);
-    $out .= '</button>';
+    $s .= ' ';
+    $s .= '<button' . ($test === ($n = basename($v)) ? ' disabled' : "") . ' name="test" type="submit" value="' . htmlspecialchars($n) . '">';
+    $s .= htmlspecialchars($n);
+    $s .= '</button>';
 }
-$out .= '</fieldset>';
+$s .= '</fieldset>';
 
-$out .= '<fieldset>';
-$out .= '<legend>';
-$out .= 'Preview';
-$out .= '</legend>';
-$out .= '<label>';
-$out .= '<input' . (empty($_GET['c']) ? "" : ' checked') . ' name="c" type="checkbox" value="1">';
-$out .= ' ';
-$out .= 'Show control characters';
-$out .= '</label>';
-$out .= '<br>';
-$out .= '<br>';
-$out .= '<select name="view">';
-$out .= '<option' . ('json' === $view ? ' selected' : "") . ' value="json">JSON</option>';
-$out .= '<option' . ('php' === $view ? ' selected' : "") . ' value="php">PHP</option>';
-$out .= '</select>';
-$out .= ' ';
-$out .= '<button name="test" type="submit" value="' . $test . '">';
-$out .= 'Update';
-$out .= '</button>';
-$out .= '</fieldset>';
+$s .= '<fieldset>';
+$s .= '<legend>';
+$s .= 'Preview';
+$s .= '</legend>';
+$s .= '<label>';
+$s .= '<input' . (empty($_GET['c']) ? "" : ' checked') . ' name="c" type="checkbox" value="1">';
+$s .= ' ';
+$s .= 'Show control characters';
+$s .= '</label>';
+$s .= '<br>';
+$s .= '<br>';
+$s .= '<select name="view">';
+$s .= '<option' . ('json' === $view ? ' selected' : "") . ' value="json">JSON</option>';
+$s .= '<option' . ('php' === $view ? ' selected' : "") . ' value="php">PHP</option>';
+$s .= '</select>';
+$s .= ' ';
+$s .= '<button name="test" type="submit" value="' . $test . '">';
+$s .= 'Update';
+$s .= '</button>';
+$s .= '</fieldset>';
 
-$out .= '</form>';
+$s .= '</form>';
 
 $error_count = 0;
 foreach ($files as $v) {
     $error = false;
     $raw = file_get_contents($v);
-    $out .= '<h1 id="' . ($n = basename(dirname($v)) . ':' . basename($v, '.yaml')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
-    $out .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
-    $out .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-    $out .= strtr(htmlspecialchars($raw), [
+    $s .= '<h1 id="' . ($n = basename(dirname($v)) . ':' . basename($v, '.yaml')) . '"><a aria-hidden="true" href="#' . $n . '">&sect;</a> ' . strtr($v, [PATH . D => '.' . D]) . '</h1>';
+    $s .= '<div style="display:flex;gap:1em;margin:1em 0 0;">';
+    $s .= '<pre style="background:#ccc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+    $s .= strtr(htmlspecialchars($raw), [
         "\n" => '<span class="c-n">' . "\n" . '</span>',
         "\t" => '<span class="c-t">' . "\t" . '</span>',
         ' ' => '<span class="c-s"> </span>'
     ]);
-    $out .= '<span class="c-e">' . "\n" . '</span></pre>';
+    $s .= '<span class="c-e">' . "\n" . '</span></pre>';
     if ('json' === $view) {
-        $out .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-        $start = microtime(true);
+        $s .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;flex:1;font:normal normal 100%/1.25 monospace;margin:0;min-width:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
+        $start = hrtime(true);
         $content = x\y_a_m_l\from($raw);
-        $end = microtime(true);
+        $end = hrtime(true);
         $content = strtr(json_encode($content, JSON_PRETTY_PRINT), ['    ' => '  ']);
-        $out .= strtr(htmlspecialchars($content), [
+        $s .= strtr(htmlspecialchars($content), [
             "\n" => '<span class="c-n">' . "\n" . '</span>',
             "\t" => '<span class="c-t">' . "\t" . '</span>',
             ' ' => '<span class="c-s"> </span>'
         ]);
-        $out .= '<span class="c-e">' . "\n" . '</span></pre>';
+        $s .= '<span class="c-e">' . "\n" . '</span></pre>';
     } else if ('php' === $view) {
-        $out .= '<div style="flex:1;min-width:0;">';
+        $s .= '<div style="flex:1;min-width:0;">';
         $a = $b = "";
         $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
-        $start = microtime(true);
+        $start = hrtime(true);
         $lot = [
             '!php/const' => function ($v) {
                 return is_string($v) && defined($v) ? constant($v) : null;
             }
         ];
         $content = x\y_a_m_l\from($raw, false, $lot);
-        $end = microtime(true);
+        $end = hrtime(true);
         $content = '<?' . "php\n\nreturn " . php_export($content) . ';';
         $a .= strtr(htmlspecialchars($content), [
             "\n" => '<span class="c-n">' . "\n" . '</span>',
@@ -262,24 +262,24 @@ foreach ($files as $v) {
             // file_put_contents($f, $content);
             $error = false; // No test file to compare
         }
-        $out .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b;
-        // $out .= '<pre><code>' . json_encode($lot, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</code></pre>';
-        $out .= '</div>';
+        $s .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b;
+        // $s .= '<pre><code>' . json_encode($lot, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</code></pre>';
+        $s .= '</div>';
     }
-    $out .= '</div>';
-    $time = round(($end - $start) * 1000, 2);
+    $s .= '</div>';
+    $time = round(($end - $start) * 1e6, 2);
     if ($error) {
         $error_count += 1;
     }
     $slow = $time >= 1;
-    $out .= '<p style="color:#' . ($slow ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
+    $s .= '<p style="color:#' . ($slow ? '800' : '080') . ';">Parsed in ' . $time . ' ms.</p>';
 }
 
-$out .= '</body>';
-$out .= '</html>';
+$s .= '</body>';
+$s .= '</html>';
 
 if ($error_count) {
-    $out = strtr($out, ['</title>' => ' (' . $error_count . ')</title>']);
+    $s = strtr($s, ['</title>' => ' (' . $error_count . ')</title>']);
 }
 
-echo $out;
+echo $s;
