@@ -557,8 +557,8 @@ to(mixed $value, bool|int|string $dent = true, bool $batch = false): ?string;
 Tests
 -----
 
-Clone this repository into the root of your web server that supports PHP and then you can open the `test/from.php` and
-`test/to.php` file with your browser to see the result and the performance of this converter in various cases.
+Clone this repository into the root of your web server that supports PHP and then you can open the `tools/test/from.php`
+and `tools/test/to.php` file with your browser to see the result and the performance of this converter in various cases.
 
 Tweaks
 ------

@@ -28,7 +28,7 @@
   "license": "MIT",
   "name": "taufik-nurrohman/y-a-m-l",
   "require": {
-    "php": ">=7.1"
+    "php": ">=7.4"
   },
   "support": {
     "docs": "https://github.com/taufik-nurrohman/y-a-m-l#readme",

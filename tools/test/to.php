@@ -183,7 +183,7 @@ foreach ($files as $v) {
         $s .= ($error ? strtr($a, [':#cfc;' => ':#fcc;']) : $a) . $b . '</div>';
     }
     $s .= '</div>';
-    $time = round(($end - $start) * 1e6, 2);
+    $time = round(($end - $start) / 1e6, 2);
     if ($error) {
         $error_count += 1;
     }
