@@ -554,7 +554,7 @@ from(?string $value, bool $array = false, array &$lot = []): mixed;
 to(mixed $value, bool|int|string $dent = true, bool $batch = false): ?string;
 ~~~
 
-Tests
+Tools
 -----
 
 Clone this repository into the root of your web server that supports PHP and then you can open the `tools/test/from.php`
