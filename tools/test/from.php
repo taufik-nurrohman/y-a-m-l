@@ -51,10 +51,10 @@ function php_export($value, $d = "", $key_as_string = false, $is_object = null) 
         if ($value instanceof stdClass) {
             return '(object) ' . php_export((array) $value, $d, true, true);
         }
-        return strtr(var_export($value, true), [
+        return trim(strtr(var_export($value, true), [
             "\n " . $d => "\n" . $d,
             ",\n" . $d . ')' => "\n" . $d . ')'
-        ]);
+        ]), "\\");
     }
     if (is_array($value)) {
         $r = [];
@@ -230,12 +230,11 @@ foreach ($files as $v) {
         $a = $b = "";
         $a .= '<pre style="background:#cfc;border:1px solid rgba(0,0,0,.25);color:#000;font:normal normal 100%/1.25 monospace;margin:0;padding:.5em;tab-size:4;white-space:pre-wrap;word-wrap:break-word;">';
         $start = hrtime(true);
-        $lot = [
+        $content = x\y_a_m_l\from($raw, ['lot' => [
             '!php/const' => function ($v) {
                 return is_string($v) && defined($v) ? constant($v) : null;
             }
-        ];
-        $content = x\y_a_m_l\from($raw, false, $lot);
+        ]]);
         $end = hrtime(true);
         $content = '<?' . "php\n\nreturn " . php_export($content) . ';';
         $a .= strtr(htmlspecialchars($content), [

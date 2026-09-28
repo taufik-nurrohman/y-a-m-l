@@ -1,11 +1,27 @@
 <?php
 
 namespace x\y_a_m_l {
-    function from(?string $value, $array = false, array &$lot = []) {
+    function from(?string $value, $state = []) {
+        if (!\is_array($state)) {
+            $state = ['array' => !!$state];
+        }
+        $state = \array_replace([
+            'array' => false,
+            'lot' => [],
+            'with' => []
+        ], $state);
+        $array = !empty($state['array']);
         $value = \strtr(\trim($value ?? "", "\n"), [
             "\r\n" => "\n",
             "\r" => "\n"
         ]);
+        $with = (array) ($state['with'] ?? []);
+        if ($with) foreach ($with as $w) {
+            if (\is_array($w) && \is_callable($w[0] ?? 0)) {
+                $value = $w[0]($value, $state);
+            }
+        }
+        $lot = (array) ($state['lot'] ?? []);
         // <https://yaml.org/spec/1.2.2#68-directives>
         if (\strspn($value, '#%') && false !== \strpos($value, "\n---")) {
             $max = \strlen($value);
@@ -58,9 +74,18 @@ namespace x\y_a_m_l {
             if (null !== $s) {
                 $r[] = from\v($s, $array, $lot);
             }
-            return $r;
+            $r = [$r, $state, \count($r)];
+        } else {
+            $r = [from\v($value, $array, $lot), $state, null];
         }
-        return from\v($value, $array, $lot);
+        if ($with) foreach ($with as $w) {
+            if (\is_array($w) && \is_callable($w[1] ?? 0)) {
+                $r[0] = $w[1](...$r);
+            } else if (\is_callable($w)) {
+                $r[0] = $w(...$r);
+            }
+        }
+        return $r[0];
     }
 }
 

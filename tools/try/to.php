@@ -18,6 +18,7 @@ define('PATH', __DIR__);
 require __DIR__ . D . '..' . D . '..' . D . 'to.php';
 
 if ('POST' === $_SERVER['REQUEST_METHOD']) {
+    $_SESSION['batch'] = $batch = !empty($_POST['batch']);
     if (($token = $_POST['token'] ?? 0) !== ($_SESSION['token'] ?? 1)) {
         $_SESSION['alert'] = 'Invalid token.';
         header('location: to.php');
@@ -30,7 +31,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     }
     $_SESSION['r'][0] = $content;
     $t = hrtime(true);
-    $content = x\y_a_m_l\to(json_decode($content, true));
+    $content = x\y_a_m_l\to(json_decode($content, true), ['batch' => $batch]);
     $t = (hrtime(true) - $t) / 1e6;
     $_SESSION['r'][1] = $content;
     $_SESSION['t'][0] = 0;
@@ -38,7 +39,6 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     header('location: to.php');
     exit;
 }
-
 
 $s = '<!DOCTYPE html>';
 $s .= '<html dir="ltr">';
@@ -79,6 +79,12 @@ $s .= '<p>';
 $s .= '<button type="submit">';
 $s .= 'Test';
 $s .= '</button>';
+$s .= ' ';
+$s .= '<label>';
+$s .= '<input' . (empty($_SESSION['batch']) ? "" : ' checked') . ' name="batch" type="checkbox" value="1">';
+$s .= ' ';
+$s .= 'Multiple documents';
+$s .= '</label>';
 $s .= '</p>';
 
 $s .= '<input name="token" type="hidden" value="' . ($_SESSION['token'] = bin2hex(random_bytes(16))) . '">';
@@ -88,6 +94,6 @@ $s .= '</form>';
 $s .= '</body>';
 $s .= '</html>';
 
-unset($_SESSION['alert'], $_SESSION['r'], $_SESSION['t']);
+unset($_SESSION['alert'], $_SESSION['batch'], $_SESSION['r'], $_SESSION['t']);
 
 echo $s;

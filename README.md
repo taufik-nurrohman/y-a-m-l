@@ -1,10 +1,10 @@
 PHP YAML Parser
 ===============
 
-![from.php] ![to.php]
+![from.php] ![to.php] <!-- -->
 
-[from.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/from.php?branch=main&color=%234f5d95&label=from.php&labelColor=%231f2328&style=flat-square
-[to.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/to.php?branch=main&color=%234f5d95&label=to.php&labelColor=%231f2328&style=flat-square
+ [from.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/from.php?branch=main&color=%234f5d95&label=from.php&labelColor=%231f2328&style=flat-square
+ [to.php]: https://img.shields.io/github/size/taufik-nurrohman/y-a-m-l/to.php?branch=main&color=%234f5d95&label=to.php&labelColor=%231f2328&style=flat-square
 
 Motivation
 ----------
@@ -431,39 +431,36 @@ These [built-in tags](https://yaml.org/type) are supported:
  - `!!str`
  - `!!timestamp`
 
-Users who want to add their own custom tags can define them in the `$lot` parameter of the `from()` function as a
-closure. Note that this parameter is provided as a live reference, so you cannot put an array of tag definitions
-directly into it. Instead, you must put it into a temporary variable:
+Users who want to add their own custom tags can define them in the `lot` state of the `from()` function as a closure
+[like this](x/tags.php):
 
 ~~~ php
-// <https://symfony.com/doc/7.3/reference/formats/yaml.html#symfony-specific-features>
-$lot = [
-    '!php/const' => static function ($value) {
-        if (is_string($value) && defined($value)) {
-            return constant($value);
-        }
-        return null;
-    },
-    '!php/enum' => static function ($value) {
-        if (!is_string($value)) {
+$value = from_yaml($value, [
+    // <https://symfony.com/doc/7.3/reference/formats/yaml.html#symfony-specific-features>
+    'lot' => [
+        '!php/const' => static function ($value) {
+            if (is_string($value) && defined($value)) {
+                return constant($value);
+            }
             return null;
+        },
+        '!php/enum' => static function ($value) {
+            if (!is_string($value)) {
+                return null;
+            }
+            [$a, $b] = explode('::', $value, 2);
+            if ('->value' === substr($b, -7)) {
+                return (new ReflectionEnumBackedCase($a, substr($b, 0, -7)))->getBackingValue();
+            }
+            return (new ReflectionEnumBackedCase($a, $b))->getValue();
+        },
+        '!php/object' => static function ($value) {
+            return is_string($value) ? unserialize($value) : null;
         }
-        [$a, $b] = explode('::', $value, 2);
-        if ('->value' === substr($b, -7)) {
-            return (new ReflectionEnumBackedCase($a, substr($b, 0, -7)))->getBackingValue();
-        }
-        return (new ReflectionEnumBackedCase($a, $b))->getValue();
-    },
-    '!php/object' => static function ($value) {
-        return is_string($value) ? unserialize($value) : null;
-    }
-];
+    ]
+]);
 
-$value = from_yaml($value, false, $lot);
-
-// Here, the `$lot` variable will probably contain anchors as well. Anchor data will have a key started with ‘&’.
-
-var_dump($lot, $value);
+var_export($value);
 ~~~
 
 > [!WARNING]
@@ -480,7 +477,7 @@ var_dump($lot, $value);
 > !!str asdf: asdf
 > ~~~
 
-[^2]: To simplify the parsing process, the parser does not care about case sensitivity.
+ [^2]: To simplify the parsing process, the parser does not care about case sensitivity.
 
 Usage
 -----
@@ -530,28 +527,119 @@ var_export(from_yaml('asdf: asdf')); // Returns `(object) ['asdf' => 'asdf']`
 Options
 -------
 
+### `array`
+
+This option applies to the `from()` function and has a default value of `false`. Set the value to `true` to force the
+PHP output as plain array:
+
 ~~~ php
-/**
- * Convert YAML string to PHP data.
- *
- * @param null|string $value Your YAML string.
- * @param bool $array If this option is set to `true`, PHP object will becomes associative array.
- * @param array $lot Currently used only to store anchor(s) and custom tag(s).
- * @return mixed
- */
-from(?string $value, bool $array = false, array &$lot = []): mixed;
+<?php
+
+$var = from_yaml('asdf: asdf', ['array' => true]);
+
+echo $var['asdf'];
 ~~~
 
 ~~~ php
-/**
- * Convert PHP data to YAML string.
- *
- * @param mixed $value Your PHP data.
- * @param bool|int|string $dent Specify the indent size or character(s).
- * @param bool $batch Force the current array input to generate multiple YAML document(s).
- * @return null|string
- */
-to(mixed $value, bool|int|string $dent = true, bool $batch = false): ?string;
+<?php
+
+$var = from_yaml('asdf: asdf', ['array' => false]);
+
+echo $var->asdf;
+~~~
+
+### `batch`
+
+This option applies to the `to()` function and has a default value of `false`. Set the value to `true` to force the YAML
+output as multiple documents:
+
+~~~ php
+<?= to_yaml('asdf', ['batch' => true]); ?>
+~~~
+
+~~~ php
+<?= to_yaml(['asdf', 'asdf', [1, 2, 3, 4]], ['batch' => true]); ?>
+~~~
+
+### `tab`
+
+This option applies to the `to()` function and has a default value of `4`. Set the value to a string, an integer greater
+than `0`, or `true` (which is the same as `4`) to customize the YAML output indentation:
+
+~~~ php
+<?= to_yaml($value, ['tab' => 2]); ?>
+~~~
+
+~~~ php
+<?= to_yaml($value, ['tab' => ' ']); ?>
+~~~
+
+### `with`
+
+A very simple extension system:
+
+~~~ php
+<?php use function x\y_a_m_l\from as from_yaml;
+
+// Extension as a closure
+$extension = function ($value) { /* … */ };
+
+// Extension as an array of event(s)
+$extension = [
+    // Pre-parse
+    function (?string $value) { /* … */ },
+    // Post-parse
+    function ($value) { /* … */ }
+];
+
+// Extension as a function
+function extension($value) { /* … */ }
+
+// Extension as a class
+class Extension {
+    public function __invoke($value) { /* … */ }
+}
+
+var_export(from_yaml($value, [
+    'with' => [
+        $extension,
+        'extension',
+        new Extension,
+        // …
+    ]
+]));
+~~~
+
+~~~ php
+<?php use function x\y_a_m_l\to as to_yaml;
+
+// Extension as a closure
+$extension = function (?string $value) { /* … */ };
+
+// Extension as an array of event(s)
+$extension = [
+    // Pre-parse
+    function ($value) { /* … */ },
+    // Post-parse
+    function (?string $value) { /* … */ }
+];
+
+// Extension as a function
+function extension(?string $value) { /* … */ }
+
+// Extension as a class
+class Extension {
+    public function __invoke(?string $value) { /* … */ }
+}
+
+var_export(to_yaml($value, [
+    'with' => [
+        $extension,
+        'extension',
+        new Extension,
+        // …
+    ]
+]));
 ~~~
 
 Tools
@@ -559,74 +647,6 @@ Tools
 
 Clone this repository into the root of your web server that supports PHP and then you can open the `tools/test/from.php`
 and `tools/test/to.php` file with your browser to see the result and the performance of this converter in various cases.
-
-Tweaks
-------
-
-Your YAML content is represented as variable `$value`. If you modify the content before the function `from_yaml()` is
-called, it means that you modify the YAML content before it is converted. If you modify the content after the function
-`from_yaml()` is called, it means that you modify the results of the YAML conversion.
-
-### Globally Reusable Functions
-
-To make `from_yaml()` and `to_yaml()` functions reusable globally, use this method:
-
-~~~ php
-<?php
-
-require 'from.php';
-require 'to.php';
-
-// Or, if you are using Composer…
-// require 'vendor/autoload.php';
-
-function from_yaml(...$v) {
-    return x\y_a_m_l\from(...$v);
-}
-
-function to_yaml(...$v) {
-    return x\y_a_m_l\to(...$v);
-}
-~~~
-
-### Variable
-
-There are several ways to declare variables in YAML, and all of them are not standard. The most common are variables
-with a format like `{{ var }}`. To add a variable feature, you need to convert the variable to a YAML value before
-parsing the data:
-
-~~~ php
-$variables = [
-    'var_1' => 'asdf',
-    'var_2' => true,
-    'var_3' => 1,
-    'var_4' => 1.5
-];
-
-if (false !== strpos($value, '{{')) {
-    $value = preg_replace_callback('/"\{\{\s*[a-z]\w*\s*\}\}"|\'\{\{\s*[a-z]\w*\s*\}\}\'|\{\{\s*[a-z]\w*\s*\}\}/', static function ($m) use ($variables) {
-        $variable = $m[0];
-        // `"{{ var }}"`
-        if ('"' === $variable[0] && '"' === substr($variable, -1)) {
-            $variable = substr($variable, 1, -1);
-        }
-        // `'{{ var }}'`
-        if ("'" === $variable[0] && "'" === substr($variable, -1)) {
-            $variable = substr($variable, 1, -1);
-        }
-        // Trim variable from `{{` and `}}`
-        $variable = trim(substr($variable, 2, -2));
-        // Get the variable value if available, default to `null`
-        $variable = $variables[$variable] ?? null;
-        // Return the variable value as YAML string
-        return to_yaml($variable);
-    }, $value);
-}
-
-$value = from_yaml($value);
-
-var_dump($value);
-~~~
 
 License
 -------

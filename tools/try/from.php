@@ -18,6 +18,7 @@ define('PATH', __DIR__);
 require __DIR__ . D . '..' . D . '..' . D . 'from.php';
 
 if ('POST' === $_SERVER['REQUEST_METHOD']) {
+    $_SESSION['array'] = $array = !empty($_POST['array']);
     if (($token = $_POST['token'] ?? 0) !== ($_SESSION['token'] ?? 1)) {
         $_SESSION['alert'] = 'Invalid token.';
         header('location: from.php');
@@ -30,15 +31,14 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     }
     $_SESSION['r'][0] = $content;
     $t = hrtime(true);
-    $content = x\y_a_m_l\from($content);
+    $content = x\y_a_m_l\from($content, ['array' => $array]);
     $t = (hrtime(true) - $t) / 1e6;
-    $_SESSION['r'][1] = json_encode($content, JSON_PRETTY_PRINT);
+    $_SESSION['r'][1] = var_export($content, true);
     $_SESSION['t'][0] = 0;
     $_SESSION['t'][1] = $t;
     header('location: from.php');
     exit;
 }
-
 
 $s = '<!DOCTYPE html>';
 $s .= '<html dir="ltr">';
@@ -79,6 +79,12 @@ $s .= '<p>';
 $s .= '<button type="submit">';
 $s .= 'Test';
 $s .= '</button>';
+$s .= ' ';
+$s .= '<label>';
+$s .= '<input' . (empty($_SESSION['array']) ? "" : ' checked') . ' name="array" type="checkbox" value="1">';
+$s .= ' ';
+$s .= 'Map as array';
+$s .= '</label>';
 $s .= '</p>';
 
 $s .= '<input name="token" type="hidden" value="' . ($_SESSION['token'] = bin2hex(random_bytes(16))) . '">';
@@ -88,6 +94,6 @@ $s .= '</form>';
 $s .= '</body>';
 $s .= '</html>';
 
-unset($_SESSION['alert'], $_SESSION['r'], $_SESSION['t']);
+unset($_SESSION['alert'], $_SESSION['array'], $_SESSION['r'], $_SESSION['t']);
 
 echo $s;

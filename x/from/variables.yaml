@@ -1,0 +1,8 @@
+asdf-1: {{ var_1 }}
+asdf-2: {{ var_2 }}
+asdf-3: [{{ var_3 }}, 2, 3, 4]
+
+asdf-4: {{ var_4 }}
+asdf-4-1: '{{ var_4 }}'
+asdf-4-2: '{{ var_4 }} asdf'
+asdf-5: "{{ var_5 }}"

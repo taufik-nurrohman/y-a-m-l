@@ -1,26 +1,51 @@
 <?php
 
 namespace x\y_a_m_l {
-    function to($value, $dent = true, $batch = false): ?string {
-        if (\is_int($dent)) {
-            $dent = \str_repeat(' ', $dent > 0 ? $dent : 4);
-        } else if (true === $dent || !\is_string($dent)) {
-            $dent = \str_repeat(' ', 4);
+    function to($value, $state = []): ?string {
+        if (!\is_array($state)) {
+            $state = ['tab' => !!$state];
+        }
+        $state = \array_replace([
+            'batch' => false,
+            'tab' => 4,
+            'with' => []
+        ], $state);
+        $batch = !empty($state['batch']);
+        $tab = $state['tab'] ?? 4;
+        if (\is_int($tab)) {
+            $tab = \str_repeat(' ', $tab > 0 ? $tab : 4);
+        } else if (true === $tab || !\is_string($tab)) {
+            $tab = \str_repeat(' ', 4);
+        }
+        $with = (array) ($state['with'] ?? []);
+        if ($with) foreach ($with as $w) {
+            if (\is_array($w) && \is_callable($w[0] ?? 0)) {
+                $value = $w[0]($value, $state);
+            }
         }
         if ($batch) {
             $t = '!"&*>[{|' . "'";
             if (!\is_array($value) || !to\l($value)) {
-                $value = to\v($value, $dent);
+                $value = to\v($value, $tab);
                 return "---" . ("" !== $value && \strspn($value, $t) ? ' ' : "\n") . $value;
             }
             $r = "";
             foreach ($value as $v) {
-                $v = to\v($v, $dent);
+                $v = to\v($v, $tab);
                 $r .= "\n---" . ("" !== $v && \strspn($v, $t) ? ' ' : "\n") . $v;
             }
-            return \substr($r, 1);
+            $r = [\substr($r, 1), $state, \count($value)];
+        } else {
+            $r = [to\v($value, $tab), $state, null];
         }
-        return to\v($value, $dent);
+        if ($with) foreach ($with as $w) {
+            if (\is_array($w) && \is_callable($w[1] ?? 0)) {
+                $r[0] = $w[1](...$r);
+            } else if (\is_callable($w)) {
+                $r[0] = $w(...$r);
+            }
+        }
+        return $r[0];
     }
 }
 
@@ -79,7 +104,7 @@ namespace x\y_a_m_l\to {
         }
         return \implode("\n", $r);
     }
-    function v($value, string $dent, int $level = 1) {
+    function v($value, string $tab, int $level = 1) {
         if (false === $value) {
             return 'false';
         }
@@ -106,13 +131,13 @@ namespace x\y_a_m_l\to {
             return $value->format('c');
         }
         if (\is_string($raw = $value)) {
-            $max = \max(60, 120 - (\strlen($dent) * $level + 1));
+            $max = \max(60, 120 - (\strlen($tab) * $level + 1));
             if ("" !== $value && false !== \strpos($value, "\0")) {
                 $value = \base64_encode($value);
                 if (\strlen($value) <= $max) {
                     return '!!binary ' . $value;
                 }
-                return "!!binary |\n" . $dent . \rtrim(\chunk_split($value, $max, "\n" . $dent));
+                return "!!binary |\n" . $tab . \rtrim(\chunk_split($value, $max, "\n" . $tab));
             }
             $d = 0;
             $flow = false;
@@ -140,16 +165,16 @@ namespace x\y_a_m_l\to {
             }
             $v = "" !== $d ? \str_repeat(' ', (int) $d) : "";
             $value = $v . r(\strtr($value, [
-                "\n" => "\n" . $dent . $v
+                "\n" => "\n" . $tab . $v
             ]));
             if ("\n" === \substr($value, -1)) {
                 if (\strspn($value, " \n\t", -2)) {
-                    return $style . '+' . $d . "\n" . $dent . $value;
+                    return $style . '+' . $d . "\n" . $tab . $value;
                 }
-                return $style . $d . "\n" . $dent . $value;
+                return $style . $d . "\n" . $tab . $value;
             }
             if ($flow || '|' === $style) {
-                return $style . '-' . $d . "\n" . $dent . $value;
+                return $style . '-' . $d . "\n" . $tab . $value;
             }
             return q($raw);
         }
@@ -167,7 +192,7 @@ namespace x\y_a_m_l\to {
                 } else {
                     $short = 6; // Disable flow style value!
                 }
-                $v = v($v, $dent, $level);
+                $v = v($v, $tab, $level);
                 if (\strspn($v, '>|')) {
                     $short = 6; // Disable flow style value!
                 }
@@ -186,8 +211,8 @@ namespace x\y_a_m_l\to {
                 return '{}';
             }
             if (\method_exists($value, '__toString')) {
-                return "|-\n" . $dent . r(\trim(\strtr($value->__toString(), [
-                    "\n" => "\n" . $dent
+                return "|-\n" . $tab . r(\trim(\strtr($value->__toString(), [
+                    "\n" => "\n" . $tab
                 ]), "\n"));
             }
         }
@@ -204,18 +229,18 @@ namespace x\y_a_m_l\to {
                     $short = 4; // Disable flow style value!
                 }
                 if (\is_iterable($v)) {
-                    $v = v($v, $dent, $level + 1);
+                    $v = v($v, $tab, $level + 1);
                     if (\strspn($v, '[{')) {
                         $v = ' ' . $v;
                     } else {
-                        $v = r("\n" . $dent . \strtr($v, [
-                            "\n" => "\n" . $dent
+                        $v = r("\n" . $tab . \strtr($v, [
+                            "\n" => "\n" . $tab
                         ]));
                     }
                     $r[] = $k . ':' . $v;
                     continue;
                 }
-                if ('~' === ($v = v($v, $dent, $level)) && '?' === ($k[0] ?? 0)) {
+                if ('~' === ($v = v($v, $tab, $level)) && '?' === ($k[0] ?? 0)) {
                     $r[] = \substr($k, 0, -1);
                     continue;
                 }
