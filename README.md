@@ -432,7 +432,7 @@ These [built-in tags](https://yaml.org/type) are supported:
  - `!!timestamp`
 
 Users who want to add their own custom tags can define them in the `lot` state of the `from()` function as a closure
-[like this](x/tags.php):
+[like this](x/from/tags.php):
 
 ~~~ php
 $value = from_yaml($value, [
