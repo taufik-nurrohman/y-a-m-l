@@ -27,7 +27,7 @@ namespace x\y_a_m_l {
             $t = '!"&*>[{|' . "'";
             if (!\is_array($value) || !to\l($value)) {
                 $value = to\v($value, $tab);
-                return "---" . ("" !== $value && \strspn($value, $t) ? ' ' : "\n") . $value;
+                return '---' . ("" !== $value && \strspn($value, $t) ? ' ' : "\n") . $value;
             }
             $r = "";
             foreach ($value as $v) {
