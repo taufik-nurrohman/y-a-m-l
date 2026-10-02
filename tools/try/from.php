@@ -19,7 +19,7 @@ require __DIR__ . D . '..' . D . '..' . D . 'from.php';
 
 if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $_SESSION['array'] = $array = !empty($_POST['array']);
-    if (($token = $_POST['token'] ?? 0) !== ($_SESSION['token'] ?? 1)) {
+    if (($token = $_POST['token'] ?? 0) !== ($_SESSION['token'][filemtime(__FILE__)] ?? 1)) {
         $_SESSION['alert'] = 'Invalid token.';
         header('location: from.php');
         exit;
@@ -33,7 +33,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $t = hrtime(true);
     $content = x\y_a_m_l\from($content, ['array' => $array]);
     $t = (hrtime(true) - $t) / 1e6;
-    $_SESSION['r'][1] = var_export($content, true);
+    $_SESSION['r'][1] = json_encode($content, JSON_PRETTY_PRINT);
     $_SESSION['t'][0] = 0;
     $_SESSION['t'][1] = $t;
     header('location: from.php');
@@ -87,7 +87,7 @@ $s .= 'Map as array';
 $s .= '</label>';
 $s .= '</p>';
 
-$s .= '<input name="token" type="hidden" value="' . ($_SESSION['token'] = bin2hex(random_bytes(16))) . '">';
+$s .= '<input name="token" type="hidden" value="' . ($_SESSION['token'][filemtime(__FILE__)] = bin2hex(random_bytes(16))) . '">';
 
 $s .= '</form>';
 

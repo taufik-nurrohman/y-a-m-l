@@ -19,7 +19,7 @@ require __DIR__ . D . '..' . D . '..' . D . 'to.php';
 
 if ('POST' === $_SERVER['REQUEST_METHOD']) {
     $_SESSION['batch'] = $batch = !empty($_POST['batch']);
-    if (($token = $_POST['token'] ?? 0) !== ($_SESSION['token'] ?? 1)) {
+    if (($token = $_POST['token'] ?? 0) !== ($_SESSION['token'][filemtime(__FILE__)] ?? 1)) {
         $_SESSION['alert'] = 'Invalid token.';
         header('location: to.php');
         exit;
@@ -87,7 +87,7 @@ $s .= 'Multiple documents';
 $s .= '</label>';
 $s .= '</p>';
 
-$s .= '<input name="token" type="hidden" value="' . ($_SESSION['token'] = bin2hex(random_bytes(16))) . '">';
+$s .= '<input name="token" type="hidden" value="' . ($_SESSION['token'][filemtime(__FILE__)] = bin2hex(random_bytes(16))) . '">';
 
 $s .= '</form>';
 
