@@ -31,7 +31,7 @@ if ('POST' === $_SERVER['REQUEST_METHOD']) {
     }
     $_SESSION['r'][0] = $content;
     $t = hrtime(true);
-    $content = x\y_a_m_l\to(json_decode($content, true), ['batch' => $batch]);
+    $content = x\y_a_m_l\to(json_decode($content, true), ['batch' => $batch, 'tab' => 2]);
     $t = (hrtime(true) - $t) / 1e6;
     $_SESSION['r'][1] = $content;
     $_SESSION['t'][0] = 0;
