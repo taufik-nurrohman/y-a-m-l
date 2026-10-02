@@ -185,7 +185,7 @@ namespace x\y_a_m_l\to {
             $r = [];
             $short = 0;
             foreach ($value as $v) {
-                if (\is_string($v) && ("" === $v || \strlen($v) < 41)) {
+                if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "'") && false === \strpos($v, "\n")))) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
                     $short += 1;
@@ -221,7 +221,7 @@ namespace x\y_a_m_l\to {
             $short = 0;
             foreach ($value as $k => $v) {
                 $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ', $level) . "\n" : q((string) $k));
-                if (\is_string($v) && ("" === $v || \strlen($v) < 41)) {
+                if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "'") && false === \strpos($v, "\n")))) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
                     $short += 1;
