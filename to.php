@@ -75,9 +75,9 @@ namespace x\y_a_m_l\to {
         }
         if (
             // ` asdf` or `asdf `
-            ' ' === $v[0] || ' ' === \substr($v, -1) ||
+            ' ' === $v[0] || ' ' === $v[-1] ||
             // `asdf:`
-            ':' === \substr($v, -1) ||
+            ':' === $v[-1] ||
             // `asdf #asdf`
             false !== ($n = \strpos($v, '#')) && \strspn($v, " \n\t", $n - 1) ||
             // `asdf: asdf`
@@ -167,11 +167,12 @@ namespace x\y_a_m_l\to {
             $value = $v . r(\strtr($value, [
                 "\n" => "\n" . $tab . $v
             ]));
-            if ("\n" === \substr($value, -1)) {
+            if ($value && "\n" === $value[-1]) {
+                $s = $level > 1 ? \substr($value, 0, -1) : $value;
                 if (\strspn($value, " \n\t", -2)) {
-                    return $style . '+' . $d . "\n" . $tab . $value;
+                    return $style . '+' . $d . "\n" . $tab . $s;
                 }
-                return $style . $d . "\n" . $tab . $value;
+                return $style . $d . "\n" . $tab . $s;
             }
             if ($flow || '|' === $style) {
                 return $style . '-' . $d . "\n" . $tab . $value;
@@ -185,7 +186,7 @@ namespace x\y_a_m_l\to {
             $r = [];
             $short = 0;
             foreach ($value as $v) {
-                if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "'") && false === \strpos($v, "\n")))) {
+                if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "\n")))) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
                     $short += 1;
@@ -221,7 +222,7 @@ namespace x\y_a_m_l\to {
             $short = 0;
             foreach ($value as $k => $v) {
                 $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ', $level) . "\n" : q((string) $k));
-                if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "'") && false === \strpos($v, "\n")))) {
+                if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "\n")))) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
                     $short += 1;
