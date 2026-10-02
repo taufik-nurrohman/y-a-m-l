@@ -1,3 +1,5 @@
 - [ a'sdf ]
 - [ asdf, a'sdf ]
 - [ 'asdf', a'sdf ]
+- [ 'asdf ] asdf' ]
+- [ 'asdf } asdf' ]

@@ -362,15 +362,17 @@ namespace x\y_a_m_l\from {
         $b = $v[0];
         $d = $r = $stack = "";
         while ("" !== $v) {
-            if ($n = \strcspn($v, ',:[]{}')) {
-                $r .= \ltrim(\substr($v, 0, $n));
-                $v = \ltrim(\substr($v, $n));
-            }
-            if (('"' === ($c = $v[0] ?? 0) || "'" === $c) && "" !== ($q = q($v))[0]) {
+            $c = $v[0] ?? 0;
+            if (('"' === $c || "'" === $c) && "" !== ($q = q($v))[0]) {
                 $r .= $q[0];
                 $v = c(\substr($v, \strlen($q[0])));
                 continue;
             }
+            if ($n = \strcspn($v, ',:[]{}')) {
+                $r .= \ltrim(\substr($v, 0, $n));
+                $v = \ltrim(\substr($v, $n));
+            }
+            $c = $v[0] ?? 0;
             if (',' === $c) {
                 if ($c === $v) {
                     return ""; // Broken :(

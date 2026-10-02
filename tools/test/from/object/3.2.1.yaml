@@ -1,2 +1,6 @@
 asdf-1: { asdf: a'sdf }
-asdf-3: { 'asdf': a'sdf }
+asdf-2: { 'asdf': a'sdf }
+asdf-3: { 'asdf ] asdf': asdf }
+asdf-4: { 'asdf } asdf': asdf }
+asdf-5: { asdf: 'asdf ] asdf' }
+asdf-6: { asdf: 'asdf } asdf' }

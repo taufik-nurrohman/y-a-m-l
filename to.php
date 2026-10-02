@@ -104,7 +104,7 @@ namespace x\y_a_m_l\to {
         }
         return \implode("\n", $r);
     }
-    function v($value, string $tab, int $level = 1) {
+    function v($value, string $tab, int $deep = 0) {
         if (false === $value) {
             return 'false';
         }
@@ -131,7 +131,7 @@ namespace x\y_a_m_l\to {
             return $value->format('c');
         }
         if (\is_string($raw = $value)) {
-            $max = \max(60, 120 - (\strlen($tab) * $level + 1));
+            $max = \max(60, 120 - (\strlen($tab) * ($deep + 1)));
             if ("" !== $value && false !== \strpos($value, "\0")) {
                 $value = \base64_encode($value);
                 if (\strlen($value) <= $max) {
@@ -168,7 +168,7 @@ namespace x\y_a_m_l\to {
                 "\n" => "\n" . $tab . $v
             ]));
             if ($value && "\n" === $value[-1]) {
-                $s = $level > 1 ? \substr($value, 0, -1) : $value;
+                $s = $deep > 0 ? \substr($value, 0, -1) : $value;
                 if (\strspn($value, " \n\t", -2)) {
                     return $style . '+' . $d . "\n" . $tab . $s;
                 }
@@ -193,7 +193,7 @@ namespace x\y_a_m_l\to {
                 } else {
                     $short = 6; // Disable flow style value!
                 }
-                $v = v($v, $tab, $level);
+                $v = v($v, $tab, $deep + 1);
                 if (\strspn($v, '>|')) {
                     $short = 6; // Disable flow style value!
                 }
@@ -221,7 +221,7 @@ namespace x\y_a_m_l\to {
             $r = [];
             $short = 0;
             foreach ($value as $k => $v) {
-                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ', $level) . "\n" : q((string) $k));
+                $k = "\0" === $k ? "? ~\n" : (\is_string($k) && false !== \strpos($k, "\n") ? '? ' . v($k, '  ', $deep) . "\n" : q((string) $k));
                 if (\is_string($v) && ("" === $v || (\strlen($v) < 41 && false === \strpos($v, "\n")))) {
                     $short += 1;
                 } else if (\is_float($v) || \is_int($v) || \in_array($v, [-\INF, -\NAN, \INF, \NAN, false, null, true], true)) {
@@ -230,7 +230,7 @@ namespace x\y_a_m_l\to {
                     $short = 4; // Disable flow style value!
                 }
                 if (\is_iterable($v)) {
-                    $v = v($v, $tab, $level + 1);
+                    $v = v($v, $tab, $deep + 1);
                     if (\strspn($v, '[{')) {
                         $v = ' ' . $v;
                     } else {
@@ -241,7 +241,7 @@ namespace x\y_a_m_l\to {
                     $r[] = $k . ':' . $v;
                     continue;
                 }
-                if ('~' === ($v = v($v, $tab, $level)) && '?' === ($k[0] ?? 0)) {
+                if ('~' === ($v = v($v, $tab, $deep)) && '?' === ($k[0] ?? 0)) {
                     $r[] = \substr($k, 0, -1);
                     continue;
                 }

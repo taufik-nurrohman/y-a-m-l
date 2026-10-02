@@ -11,5 +11,11 @@ return array(
   array(
     'asdf',
     'a\'sdf'
+  ),
+  array(
+    'asdf ] asdf'
+  ),
+  array(
+    'asdf } asdf'
   )
 );
