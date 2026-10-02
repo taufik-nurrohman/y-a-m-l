@@ -20,11 +20,7 @@ look for PHP YAML parsers, far more than their tendency to look for content mana
 my attempt to drive people who need a PHP YAML parser to my content management system project that I’m proud of (which
 is apparently not very popular since people seem to be more interested in static site generators these days).
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="2.svg">
-  <source media="(prefers-color-scheme: light)" srcset="1.svg">
-  <img alt="Why?" src="1.svg">
-</picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="2.svg"><source media="(prefers-color-scheme: light)" srcset="1.svg"><img alt="Why?" src="1.svg"></picture>
 
 Why should you choose my YAML parser over any other similar YAML parser out there?
 
