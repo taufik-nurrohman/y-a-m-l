@@ -3,7 +3,7 @@
 namespace x\y_a_m_l {
     function to($value, $state = []): ?string {
         if (!\is_array($state)) {
-            $state = ['tab' => !!$state];
+            $state = ['tab' => \is_int($state) ? $state : !!$state];
         }
         $state = \array_replace([
             'batch' => false,
