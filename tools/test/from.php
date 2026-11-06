@@ -159,13 +159,16 @@ $s .= '<fieldset>';
 $s .= '<legend>';
 $s .= 'Navigation';
 $s .= '</legend>';
+$s .= '<p>';
 $s .= '<a href="to.php">Data to YAML</a>';
+$s .= '</p>';
 $s .= '</fieldset>';
 
 $s .= '<fieldset>';
 $s .= '<legend>';
-$s .= 'Filter';
+$s .= 'Batch';
 $s .= '</legend>';
+$s .= '<p>';
 $s .= '<button' . ('*' === $test ? ' disabled' : "") . ' name="test" type="submit" value="*">';
 $s .= '*';
 $s .= '</button>';
@@ -175,19 +178,21 @@ foreach (glob(__DIR__ . D . 'from' . D . '*', GLOB_ONLYDIR) as $v) {
     $s .= htmlspecialchars($n);
     $s .= '</button>';
 }
+$s .= '</p>';
 $s .= '</fieldset>';
 
 $s .= '<fieldset>';
 $s .= '<legend>';
-$s .= 'Preview';
+$s .= 'View';
 $s .= '</legend>';
+$s .= '<p>';
 $s .= '<label>';
 $s .= '<input' . (empty($_GET['c']) ? "" : ' checked') . ' name="c" type="checkbox" value="1">';
 $s .= ' ';
 $s .= 'Show control characters';
 $s .= '</label>';
-$s .= '<br>';
-$s .= '<br>';
+$s .= '</p>';
+$s .= '<p>';
 $s .= '<select name="view">';
 $s .= '<option' . ('json' === $view ? ' selected' : "") . ' value="json">JSON</option>';
 $s .= '<option' . ('php' === $view ? ' selected' : "") . ' value="php">PHP</option>';
@@ -196,6 +201,7 @@ $s .= ' ';
 $s .= '<button name="test" type="submit" value="' . $test . '">';
 $s .= 'Update';
 $s .= '</button>';
+$s .= '</p>';
 $s .= '</fieldset>';
 
 $s .= '</form>';
